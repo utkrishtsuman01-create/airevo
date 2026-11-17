@@ -4,7 +4,7 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.quer
 const app=$('#app'), page=document.body.dataset.page||'home', db=()=>window.airevoSupabase;
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'₹'+Number(v||0).toLocaleString('en-IN'), phone='+91 98361 47993', email='info@airevo.com';
-const S={categories:[],products:[],blogs:[],cart:JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]')};
+const S={categories:[],products:[],collections:[],blogs:[],cart:JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]')};
 const IMG={
  chimney:'https://faberindia.com/cdn/shop/products/P5A7112_compact.jpg?v=1680244428',
  microwave:'https://nandilathgmart.com/wp-content/uploads/2022/02/25sc4_25l_convection_microwave_rv_5-c1b.png',
@@ -24,12 +24,13 @@ const slides=[
 function toast(t){let e=$('#site-toast');if(!e){e=document.createElement('div');e.id='site-toast';e.className='toast';document.body.appendChild(e)}e.textContent=t;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),2600)}
 async function load(){
  const s=db();if(!s)return;
- const [c,p,b]=await Promise.all([
+ const [c,p,b,co]=await Promise.all([
  s.from('categories').select('*').eq('is_active',true).order('sort_order'),
  s.from('products').select('*,categories(name,slug),product_variants(*)').eq('is_active',true).order('created_at',{ascending:false}),
- s.from('blog_posts').select('*').eq('status','published').order('published_at',{ascending:false}).limit(6)
+ s.from('blog_posts').select('*').eq('status','published').order('published_at',{ascending:false}).limit(6),
+ s.from('collections').select('*,collection_products(collection_id,product_id,sort_order)').eq('is_active',true).order('sort_order')
  ]);
- if(!c.error)S.categories=c.data||[];if(!p.error)S.products=p.data||[];if(!b.error)S.blogs=b.data||[];
+ if(!c.error)S.categories=c.data||[];if(!p.error)S.products=p.data||[];if(!b.error)S.blogs=b.data||[];if(!co.error)S.collections=co.data||[];
 }
 const catSlug=p=>p.categories&&p.categories.slug||'';
 const image=p=>(p.image_urls&&p.image_urls[0])||IMG.microwave;
@@ -65,7 +66,7 @@ function cards(list){
  return '<div class="product-grid">'+list.map(p=>{
   const imgs=gallery(p),variants=p.product_variants||[],stock=variants.reduce((n,v)=>n+Number(v.stock_qty||0),Number(p.stock_qty||0));
   const options=variants.length?'<select class="variant-select" aria-label="Choose variant" data-variant-select="'+p.id+'">'+variants.map(v=>'<option value="'+v.id+'">'+esc(v.name)+' · '+money(v.sale_price)+'</option>').join('')+'</select>':'';
-  return '<article class="product-card" data-product-card="'+p.id+'"><a class="product-photo" href="/product.html?slug='+encodeURIComponent(p.slug)+'"><img src="'+esc(image(p))+'" alt="'+esc(p.name)+'" loading="lazy"><span class="product-chip">'+(p.is_trending?'Trending':p.is_popular?'Popular':'Airevo selection')+'</span></a><div class="product-body"><div class="product-category">'+esc(p.categories?.name||'Kitchen appliances')+'</div><h3><a href="/product.html?slug='+encodeURIComponent(p.slug)+'">'+esc(p.name)+'</a></h3><p>'+esc(p.short_description||'')+'</p><div class="product-price">'+money(p.sale_price)+' <span class="price-muted"><s>'+money(p.mrp)+'</s></span></div>'+options+'<div class="product-actions"><button class="btn" data-add-product="'+p.id+'">Add to basket</button><a class="btn-mini" href="/product.html?slug='+encodeURIComponent(p.slug)+'">Details ↗</a></div></div><div class="product-hover"><strong>'+esc(p.name)+'</strong><p>'+esc(p.description||'')+'</p><div class="mini-gallery">'+imgs.map(src=>'<img src="'+esc(src)+'" alt="'+esc(p.name)+' view" loading="lazy">').join('')+'</div><div class="spec-mini"><span>MRP '+money(p.mrp)+'</span><span>Now '+money(p.sale_price)+'</span><span>'+stock+' demo units</span><span>Net '+(p.weight_kg??'—')+' kg</span><span>Pack '+(p.package_weight_kg??'—')+' kg</span><span>'+(p.height_cm??'—')+' × '+(p.width_cm??'—')+' × '+(p.depth_cm??'—')+' cm</span></div><a class="textlink" href="/product.html?slug='+encodeURIComponent(p.slug)+'">View complete product details ↗</a></div></article>';
+  return '<article class="product-card" data-product-card="'+p.id+'"><a class="product-photo" href="/product.html?slug='+encodeURIComponent(p.slug)+'"><img src="'+esc(image(p))+'" alt="'+esc(p.name)+'" loading="lazy"><span class="product-chip">'+(p.is_trending?'Trending':p.is_popular?'Popular':'Airevo selection')+'</span></a><div class="product-body"><div class="product-category">'+esc(p.categories?.name||'Kitchen appliances')+'</div><h3><a href="/product.html?slug='+encodeURIComponent(p.slug)+'">'+esc(p.name)+'</a></h3><p>'+esc(p.short_description||'')+'</p><div class="product-price" data-product-price>'+money(p.sale_price)+' <span class="price-muted"><s>'+money(p.mrp)+'</s></span></div>'+options+'<div class="product-actions"><button class="btn" data-add-product="'+p.id+'">Add to basket</button><a class="btn-mini" href="/product.html?slug='+encodeURIComponent(p.slug)+'">Details ↗</a></div></div><div class="product-hover"><strong>'+esc(p.name)+'</strong><p>'+esc(p.description||'')+'</p><div class="mini-gallery">'+imgs.map(src=>'<img src="'+esc(src)+'" alt="'+esc(p.name)+' view" loading="lazy">').join('')+'</div><div class="spec-mini"><span>MRP '+money(p.mrp)+'</span><span>Now '+money(p.sale_price)+'</span><span>'+stock+' demo units</span><span>Net '+(p.weight_kg??'—')+' kg</span><span>Pack '+(p.package_weight_kg??'—')+' kg</span><span>'+(p.height_cm??'—')+' × '+(p.width_cm??'—')+' × '+(p.depth_cm??'—')+' cm</span></div><a class="textlink" href="/product.html?slug='+encodeURIComponent(p.slug)+'">View complete product details ↗</a></div></article>';
  }).join('')+'</div>';
 }
 function categoryCards(){
@@ -106,9 +107,21 @@ function categoryPage(){
  return heroHead('Appliance categories',cat?esc(cat.name):'Explore by category','Select a product type to compare formats, models and options. Each category has a dedicated product page.')+'<section class="section"><div class="container">'+(cat?head('Explore category',esc(cat.name),esc(cat.description||''))+cards(S.products.filter(p=>catSlug(p)===slug)):head('All categories','Find the right place to start.','Choose a category to see the matching products and variants.')+categoryCards())+'</div></section>';
 }
 function collectionPage(){
- const type=new URL(location.href).searchParams.get('type')||'trending',title=type==='popular'?'Popular choices':type==='new'?'New arrivals':'Trending now';
+ const url=new URL(location.href),type=url.searchParams.get('type')||'trending',slug=url.searchParams.get('slug')||'';
+ if(slug){
+  const collection=S.collections.find(x=>x.slug===slug);
+  if(!collection)return heroHead('Airevo collection','Collection not found','This collection may have been moved or is no longer available.')+'<section class="section"><div class="container"><a class="btn" href="/collection.html">Browse collections</a></div></section>';
+  const ordered=(collection.collection_products||[]).slice().sort((a,b)=>a.sort_order-b.sort_order);
+  const productById=new Map(S.products.map(p=>[p.id,p]));
+  const items=ordered.map(x=>productById.get(x.product_id)).filter(Boolean);
+  return heroHead('Curated collection',esc(collection.name),esc(collection.description||'Explore the products in this Airevo collection.'))+
+   '<section class="section"><div class="container">'+cards(items)+'<div class="section-action"><a class="btn dark" href="/collection.html">All collections ↗</a></div></div></section>';
+ }
+ const title=type==='popular'?'Popular choices':type==='new'?'New arrivals':'Trending now';
  const items=type==='popular'?S.products.filter(p=>p.is_popular):type==='new'?S.products.slice(0,6):S.products.filter(p=>p.is_trending);
- return heroHead('Curated collections',title,'A curated way to discover kitchen appliances by what is new, popular or trending.')+'<section class="section"><div class="container"><div class="collection-tabs"><a class="'+(type==='trending'?'active':'')+'" href="/collection.html?type=trending">Trending now</a><a class="'+(type==='popular'?'active':'')+'" href="/collection.html?type=popular">Popular choices</a><a class="'+(type==='new'?'active':'')+'" href="/collection.html?type=new">New arrivals</a></div>'+cards(items)+'<div class="section-action"><a href="/catalogue.html" class="btn dark">Browse all products ↗</a></div></div></section>';
+ const curated=S.collections.length?'<section class="section soft"><div class="container">'+head('Shop by collection','Curated for your kitchen.','Explore product groups created by the Airevo team.')+'<div class="category-grid">'+S.collections.map((c,i)=>'<a class="category-card" href="/collection.html?slug='+encodeURIComponent(c.slug)+'"><img src="'+esc(c.image_url||IMG.hob)+'" alt="'+esc(c.name)+'" loading="lazy"><span class="category-card-copy"><small>0'+(i+1)+' / Collection</small><b>'+esc(c.name)+'</b><span>'+esc(c.description||'Explore this collection')+'</span></span></a>').join('')+'</div></div></section>':'';
+ return heroHead('Curated collections',title,'A curated way to discover kitchen appliances by what is new, popular or trending.')+
+  '<section class="section"><div class="container"><div class="collection-tabs"><a class="'+(type==='trending'?'active':'')+'" href="/collection.html?type=trending">Trending now</a><a class="'+(type==='popular'?'active':'')+'" href="/collection.html?type=popular">Popular choices</a><a class="'+(type==='new'?'active':'')+'" href="/collection.html?type=new">New arrivals</a></div>'+cards(items)+'<div class="section-action"><a href="/catalogue.html" class="btn dark">Browse all products ↗</a></div></div></section>'+curated;
 }
 function approachPage(){
  return heroHead('Our approach','The right appliance begins with the right questions.','A more considered way to explore kitchen appliances, compare what matters and plan for your space.')+'<section class="section" id="why-airevo"><div class="container content-grid"><div class="content-copy"><span class="eyebrow">Why Airevo</span><h2>Not just an appliance. A better everyday.</h2><p>Your kitchen is personal. The right appliance should suit your cooking habits, space, style and the people who use it every day.</p><p>We bring clarity to product format, capacity, finish, dimensions, installation and support so that your choice feels confident.</p><a class="btn" href="/contact.html?intent=consultation">Talk to our team ↗</a></div><div class="content-image"><img src="'+IMG.hob+'" alt="Modern kitchen hob" loading="lazy"></div></div></section><section class="section soft" id="how-we-help"><div class="container">'+head('How we help','A simple, useful process.','From first enquiry to the final choice, get clear guidance at each stage.')+[['01','Understand your kitchen','Share your layout, cooking needs and available space.'],['02','Compare the options','Explore appliance types, sizes, key features and finishes.'],['03','Check the details','Confirm measurements, installation, stock and warranty.'],['04','Choose with confidence','Get the product information you need before making a decision.']].map(x=>'<div class="process-row"><strong>'+x[0]+'</strong><div><h3>'+x[1]+'</h3><p>'+x[2]+'</p></div></div>').join('')+'</div></section><section class="section"><div class="container">'+head('Airevo journal','Learn before you choose.','Explore practical buying guides and ideas.')+articleCards(S.blogs)+'<div class="section-action"><a class="btn dark" href="/blog.html">More buying guides ↗</a></div></div></section>';
@@ -157,6 +170,15 @@ function shell(content){
  $$('[data-modal-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.modalClose).classList.remove('open'));
  $('#checkout-form')?.addEventListener('submit',placeOrder);
  $('#year')&&($('#year').textContent=new Date().getFullYear());
+ document.addEventListener('change',e=>{
+  const select=e.target.closest('[data-variant-select]');if(!select)return;
+  const p=S.products.find(x=>x.id===select.dataset.variantSelect);if(!p)return;
+  const v=(p.product_variants||[]).find(x=>x.id===select.value);if(!v)return;
+  const card=select.closest('[data-product-card]'),price=card? $('[data-product-price]',card):null;
+  if(price)price.innerHTML=money(v.sale_price)+' <span class="price-muted"><s>'+money(v.mrp)+'</s></span>';
+  const img=card?$('.product-photo img',card):null,variantImage=v.image_urls?.[0];
+  if(img&&variantImage&&/^https?:\/\//i.test(variantImage))img.src=variantImage;
+ });
  document.addEventListener('click',e=>{const b=e.target.closest('[data-add-product]');if(b){const p=S.products.find(x=>x.id===b.dataset.addProduct);if(!p)return;const card=b.closest('[data-product-card]');const sel=card?$('.variant-select',card):$('#detail-variant');const v=sel&&p.product_variants?.find(x=>x.id===sel.value);const key=v?.id||p.id;const old=S.cart.find(x=>x.key===key);if(old)old.qty++;else S.cart.push({key,product_id:p.id,variant_id:v?.id||null,name:p.name+(v?' · '+v.name:''),price:Number(v?.sale_price??p.sale_price),image:v?.image_urls?.[0]||image(p),qty:1});saveCart();renderCart();toast('Added to your basket')}});
  renderCart();
 }
@@ -240,7 +262,7 @@ function bindCatalogue(){
 }
 async function bindContact(){const s=db(),f=$('#contact-form');if(!s||!f)return;f.onsubmit=async e=>{e.preventDefault();const st=$('#contact-status');st.textContent='Sending…';st.className='status-message show';const {error}=await s.from('contact_inquiries').insert({name:$('#contact-name').value.trim(),email:$('#contact-email').value.trim(),phone:$('#contact-phone').value.trim(),subject:$('#contact-subject').value,message:$('#contact-message').value.trim()});st.textContent=error?'Unable to send enquiry: '+error.message:'Thank you. Your enquiry has been saved.';st.className='status-message show'+(error?' error':'');if(!error)f.reset()}}
 function productImages(){
- function bindThumbs(){$('[data-product-image]').forEach(b=>b.onclick=()=>{$('#product-main-image').src=b.dataset.productImage;$('[data-product-image]').forEach(x=>x.classList.toggle('active',x===b))})}
+ function bindThumbs(){$$('[data-product-image]').forEach(b=>b.onclick=()=>{$('#product-main-image').src=b.dataset.productImage;$$('[data-product-image]').forEach(x=>x.classList.toggle('active',x===b))})}
  bindThumbs();
  const select=$('#detail-variant');if(!select)return;
  const slug=new URL(location.href).searchParams.get('slug')||'',p=S.products.find(x=>x.slug===slug);if(!p)return;

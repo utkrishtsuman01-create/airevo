@@ -215,10 +215,62 @@ async function categoryForm(s,c){
  $('#category-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),data={name:f.get('name'),slug:f.get('slug'),description:f.get('description'),image_url:f.get('image_url')||null,sort_order:Number(f.get('sort_order')||0),is_active:f.has('is_active')};const q=c?await s.from('categories').update(data).eq('id',c.id):await s.from('categories').insert(data);if(q.error){notify(q.error.message);return}notify('Category saved');await categories(s,$('#admin-main'))};
 }
 async function collections(s,host){
- const [cr,pr]=await Promise.all([s.from('collections').select('*,collection_products(product_id)').order('sort_order'),s.from('products').select('id,name,is_trending,is_popular,is_featured').order('name')]);
+ const [cr,pr]=await Promise.all([
+  s.from('collections').select('*,collection_products(collection_id,product_id,sort_order)').order('sort_order'),
+  s.from('products').select('id,name,sku,is_active').order('name')
+ ]);
  if(cr.error)throw cr.error;if(pr.error)throw pr.error;
- host.innerHTML='<div class="admin-panel"><h3>Collections</h3><p>Choose products to surface in Trending, Popular and Featured sections.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Collection</th><th>Products</th><th>Active</th></tr></thead><tbody>'+(cr.data||[]).map(c=>'<tr><td>'+esc(c.name)+'</td><td>'+((c.collection_products||[]).length)+'</td><td>'+c.is_active+'</td></tr>').join('')+'</tbody></table></div></div><div class="admin-panel"><h3>Product merchandising</h3>'+pr.data.map(p=>'<label class="admin-flag"><strong>'+esc(p.name)+'</strong><span><input type="checkbox" data-flag-product="'+p.id+'" data-flag="is_trending" '+(p.is_trending?'checked':'')+'> Trending</span><span><input type="checkbox" data-flag-product="'+p.id+'" data-flag="is_popular" '+(p.is_popular?'checked':'')+'> Popular</span><span><input type="checkbox" data-flag-product="'+p.id+'" data-flag="is_featured" '+(p.is_featured?'checked':'')+'> Featured</span></label>').join('')+'</div>';
- $$('[data-flag-product]').forEach(el=>el.onchange=async()=>{const patch={};patch[el.dataset.flag]=el.checked;const {error}=await s.from('products').update(patch).eq('id',el.dataset.flagProduct);if(error){notify(error.message);el.checked=!el.checked}else notify('Merchandising choice saved')});
+ const list=cr.data||[],productsList=pr.data||[];
+ host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Collections</h3><p>Create curated product groups, control their visibility and choose exactly which products appear in each collection.</p></div><button class="btn" id="collection-new" type="button">Add collection</button></div>'+
+  '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Collection</th><th>Slug</th><th>Products</th><th>Visibility</th><th>Order</th><th>Actions</th></tr></thead><tbody>'+
+  (list.length?list.map(c=>'<tr><td>'+esc(c.name)+'</td><td>'+esc(c.slug)+'</td><td>'+((c.collection_products||[]).length)+'</td><td>'+(c.is_active?'Active':'Hidden')+'</td><td>'+c.sort_order+'</td><td><button data-collection-edit="'+c.id+'" type="button">Edit</button> <button data-collection-delete="'+c.id+'" type="button">Delete</button></td></tr>').join(''):'<tr><td colspan="6">No collections created yet.</td></tr>')+
+  '</tbody></table></div></div><div id="collection-editor" class="admin-panel" hidden></div>';
+ $('#collection-new').onclick=()=>editCollection(s,null,productsList);
+ $$('[data-collection-edit]').forEach(b=>b.onclick=()=>editCollection(s,list.find(c=>c.id===b.dataset.collectionEdit),productsList));
+ $$('[data-collection-delete]').forEach(b=>b.onclick=async()=>{
+  const c=list.find(x=>x.id===b.dataset.collectionDelete);if(!c||!confirm('Delete the collection "'+c.name+'"? Its products will not be deleted.'))return;
+  const {error}=await s.from('collections').delete().eq('id',c.id);if(error){notify(error.message);return}
+  notify('Collection deleted');await collections(s,host);
+ });
+}
+async function editCollection(s,c,productsList){
+ const box=$('#collection-editor');box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'start'});
+ const assigned=new Set((c?.collection_products||[]).map(x=>x.product_id));
+ box.innerHTML='<h3>'+(c?'Edit collection':'Create collection')+'</h3><form id="collection-form"><div class="admin-form-grid">'+
+  adminFormField('Collection name','name',c?.name||'','text',{required:true})+
+  adminFormField('URL slug','slug',c?.slug||'','text',{required:true})+
+  adminFormField('Description','description',c?.description||'','textarea',{full:true})+
+  adminFormField('Cover image URL','image_url',c?.image_url||'','text',{full:true})+
+  adminFormField('Display order','sort_order',c?.sort_order??0,'number',{min:0})+
+  adminFormField('Visible on storefront','is_active',c?.is_active??true,'checkbox')+
+  '<div class="field full"><label>Products in this collection</label><div class="admin-product-picks">'+
+  (productsList.length?productsList.map(p=>'<label class="admin-flag"><span><input type="checkbox" name="collection_product" value="'+p.id+'" '+(assigned.has(p.id)?'checked':'')+' '+(!p.is_active?'':'')+'> '+esc(p.name)+'</span><small>'+esc(p.sku||'')+(p.is_active?'':' · hidden product')+'</small></label>').join(''):'<p>No products are available. Add products first.</p>')+
+  '</div></div></div><div class="hero-buttons"><button class="btn" type="submit">Save collection</button><button class="btn dark" id="collection-close" type="button">Close</button></div></form>';
+ $('#collection-close').onclick=()=>box.hidden=true;
+ $('#collection-form').onsubmit=async e=>{
+  e.preventDefault();const form=e.target,fd=new FormData(form),submit=form.querySelector('button[type="submit"]');
+  submit.disabled=true;submit.textContent='Saving…';
+  try{
+   const payload={name:String(fd.get('name')||'').trim(),slug:String(fd.get('slug')||'').trim(),description:String(fd.get('description')||''),image_url:String(fd.get('image_url')||'').trim()||null,sort_order:Number(fd.get('sort_order')||0),is_active:fd.has('is_active')};
+   let collectionId=c?.id;
+   if(c){const {error}=await s.from('collections').update(payload).eq('id',c.id);if(error)throw error}
+   else {const {data,error}=await s.from('collections').insert(payload).select('id').single();if(error)throw error;collectionId=data.id}
+   const selected=Array.from(form.querySelectorAll('input[name="collection_product"]:checked')).map(x=>x.value);
+   const old=(c?.collection_products||[]).map(x=>x.product_id);
+   for(const id of old.filter(id=>!selected.includes(id))){
+    const {error}=await s.from('collection_products').delete().eq('collection_id',collectionId).eq('product_id',id);if(error)throw error;
+   }
+   for(let i=0;i<selected.length;i++){
+    if(old.includes(selected[i])){
+     const {error}=await s.from('collection_products').update({sort_order:i}).eq('collection_id',collectionId).eq('product_id',selected[i]);if(error)throw error;
+    }else{
+     const {error}=await s.from('collection_products').insert({collection_id:collectionId,product_id:selected[i],sort_order:i});if(error)throw error;
+    }
+   }
+   notify('Collection and product assignments saved');await collections(s,$('#admin-main'));
+  }catch(err){notify(err.message||String(err))}
+  finally{submit.disabled=false;submit.textContent='Save collection'}
+ };
 }
 async function orders(s,host){
  const r=await s.from('orders').select('*,order_items(*)').order('created_at',{ascending:false});if(r.error)throw r.error;const data=r.data||[];

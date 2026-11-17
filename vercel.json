@@ -1,0 +1,57 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/account.html"
+    },
+    {
+      "source": "/catalogue",
+      "destination": "/catalogue.html"
+    },
+    {
+      "source": "/category",
+      "destination": "/category.html"
+    },
+    {
+      "source": "/collection",
+      "destination": "/collection.html"
+    },
+    {
+      "source": "/approach",
+      "destination": "/approach.html"
+    },
+    {
+      "source": "/reviews",
+      "destination": "/reviews.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    },
+    {
+      "source": "/product",
+      "destination": "/product.html"
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog.html"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/blog-post.html?slug=:slug"
+    },
+    {
+      "source": "/products/:slug",
+      "destination": "/product.html?slug=:slug"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 const $=(s,r=document)=>r.querySelector(s),all=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const client=()=>window.airevoSupabase;
 function show(el,msg,error=false){if(!el)return;el.textContent=msg;el.className='status-message show'+(error?' error':'')}
-function redirectAfterLogin(){const u=new URL(location.href),to=u.searchParams.get('next');location.href=to&&to.startsWith('/')?to:'/account.html'}
+function redirectAfterLogin(){const u=new URL(location.href),to=u.searchParams.get('next');location.href=to&&to.startsWith('/')&&!to.startsWith('//')?to:'/account.html'}
 function customerBoot(){
  const s=client();if(!s)return;
  const form=$('#customer-auth-form'),status=$('#customer-auth-status');

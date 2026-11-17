@@ -6,15 +6,15 @@ const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const money=v=>'₹'+Number(v||0).toLocaleString('en-IN'), phone='+91 98361 47993', email='info@airevo.com';
 const S={categories:[],products:[],blogs:[],cart:JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]')};
 const IMG={
- chimney:'https://faberindia.com/cdn/shop/files/P5A1131.jpg?v=1683783910',
- microwave:'https://www.citydeal.co.il/images/itempics/17235_13082023114918.jpg',
- hob:'https://mediahub.debenhams.com/m763250380406_black_xl.jpeg',
- oven:'https://images.squarespace-cdn.com/content/v1/6434bb26a48593544005e14d/1721089128031-9QMG36PXXGN9G0AXO9JN/OBO608M-01.jpg?format=1500w',
- dishwasher:'https://www.housevoice.tw/files/resize/1920/9ad2ef8c035dda92869060991f429357.jpg',
- air:'https://cdn.cosoriairfryers.com/cdn/1874/2025/05/25/thumb600-main-COSORI-Air-Fryer-21-Qt-4in1-Small-Mini-Airfryer-Bake-Roast-Reheat-97-Less-Oil-Compact-ampamp-Quiet-Nonstick-ampamp-Dishwasher-Safe-Basket-30-InApp-Rec-4537022-7167363.jpg'
+ chimney:'https://faberindia.com/cdn/shop/files/HOOD_MOJITO_IN_HC_SC_FL_BK_60_1500x1500_5.jpg?v=1750309613&width=1500',
+ microwave:'https://nandilathgmart.com/wp-content/uploads/2022/02/25sc4_25l_convection_microwave_rv_5-c1b.png',
+ hob:'https://cmmarena.com/cdn/shop/products/78-gci3b_tv.jpg?v=1677672707',
+ oven:'https://images.squarespace-cdn.com/content/v1/635f3e4e5a682269eb22a8db/1680679599922-JH3L5RSVNZJZVSMYD5QH/GGSO605TB.jpg?format=1000w',
+ dishwasher:'https://images.kaina24.lt/525/28/bosch-smu4evs08e.jpg',
+ air:'https://images.dunelm.com/30734990.jpg?%24v8srpgrid%24=&img404=noimagedefault'
 };
 const slides=[
- ['A fresher way to cook','Make air the quietest luxury.','A beautiful kitchen starts with a space that feels as good as it looks. Discover chimney designs made for modern cooking.','https://gen.krea.ai/images/d10dd84f-7873-4375-9f8b-3cb338ff8d86.png','Black kitchen chimney over a modern cooktop','Explore Chimneys','/catalogue.html?category=chimneys','Book a Consultation','/contact.html?intent=chimney-consultation'],
+ ['A fresher way to cook','Make air the quietest luxury.','A beautiful kitchen starts with a space that feels as good as it looks. Discover chimney designs made for modern cooking.',IMG.chimney,'Black kitchen chimney over a modern cooktop','Explore Chimneys','/catalogue.html?category=chimneys','Book a Consultation','/contact.html?intent=chimney-consultation'],
  ['Everyday, made easier','Good things happen in minutes.','From compact solo models to grill, convection and built-in formats, find the microwave that fits your cooking routine.',IMG.microwave,'Black built-in microwave oven','Shop Microwaves','/catalogue.html?category=microwave-ovens','Compare Capacities','/category.html?slug=microwave-ovens'],
  ['Designed around the flame','Bring precision to every flame.','Explore gas hobs, glass cooktops and induction surfaces that bring a refined finish to your kitchen.',IMG.hob,'Black glass four burner kitchen hob','Explore Hobs','/catalogue.html?category=hobs-cooktops','Choose Your Cooktop','/contact.html?intent=cooktop-advice'],
  ['A little more room to create','More room for your best recipes.','Built-in oven concepts for baking, roasting and the little experiments that become family favourites.',IMG.oven,'Built-in black glass electric oven','Discover Ovens','/catalogue.html?category=built-in-ovens','Plan My Kitchen','/contact.html?intent=oven-consultation'],

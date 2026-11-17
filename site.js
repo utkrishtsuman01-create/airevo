@@ -10,8 +10,8 @@ const IMG={
  microwave:'https://nandilathgmart.com/wp-content/uploads/2022/02/25sc4_25l_convection_microwave_rv_5-c1b.png',
  hob:'https://cmmarena.com/cdn/shop/products/78-gci3b_tv.jpg?v=1677672707',
  oven:'https://images.squarespace-cdn.com/content/v1/635f3e4e5a682269eb22a8db/1680679599922-JH3L5RSVNZJZVSMYD5QH/GGSO605TB.jpg?format=1000w',
- dishwasher:'https://images.kaina24.lt/525/28/bosch-smu4evs08e.jpg',
- air:'https://images.dunelm.com/30734990.jpg?%24v8srpgrid%24=&img404=noimagedefault'
+ dishwasher:'https://cdn.rona.ca/images/30855105_L.jpg',
+ air:'https://cosori.com/cdn/shop/products/CopyofCP358-AF-Air-Fryer_03.png?v=1684946493&width=1445'
 };
 const slides=[
  ['A fresher way to cook','Make air the quietest luxury.','A beautiful kitchen starts with a space that feels as good as it looks. Discover chimney designs made for modern cooking.',IMG.chimney,'Black kitchen chimney over a modern cooktop','Explore Chimneys','/catalogue.html?category=chimneys','Book a Consultation','/contact.html?intent=chimney-consultation'],

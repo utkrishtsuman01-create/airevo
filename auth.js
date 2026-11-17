@@ -69,7 +69,19 @@ function adminBootForm(){
   if(error){show(status,error.message,true);return false}
   if(role?.role==='admin'){show(status,'Administrator access verified. Loading dashboard…');window.AirevoAdmin?.render();return true}
   const {data:req}=await s.from('admin_access_requests').select('status').eq('user_id',session.user.id).maybeSingle();
-  show(status,req?.status==='pending'?'Your email is signed in, but admin access is still pending approval.':'Your account is not an administrator. Request approval from the Airevo owner.');
+  if(req?.status==='pending'){show(status,'Your email is signed in, but admin access is still pending approval.');}
+  else{
+   show(status,'Your account is not an administrator yet. You can request administrator access from the Airevo owner.');
+   if(session.user.email_confirmed_at){
+    const requestButton=document.createElement('button');requestButton.type='button';requestButton.className='btn';requestButton.textContent='Request admin access';requestButton.style.marginTop='10px';
+    requestButton.addEventListener('click',async()=>{
+     requestButton.disabled=true;const {error:requestError}=await s.from('admin_access_requests').insert({user_id:session.user.id,email:session.user.email,status:'pending'});
+     if(requestError){show(status,requestError.message,true);requestButton.disabled=false;}
+     else show(status,'Admin access request submitted. An existing Airevo administrator must approve it before you can enter the dashboard.');
+    });
+    status.appendChild(requestButton);
+   }
+  }
   return false;
  }
  form.addEventListener('submit',async e=>{

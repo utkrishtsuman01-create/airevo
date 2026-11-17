@@ -84,3 +84,34 @@
 .airevo-toast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:1000px){#airevo-shop .shop-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){#airevo-shop{padding:65px 0!important}#airevo-shop .shop-title{display:block}#airevo-shop .shop-title p{margin-top:14px}#airevo-shop .shop-toolbar{align-items:stretch}#airevo-shop .shop-search{max-width:none;flex-basis:100%}#airevo-shop .shop-sort{flex:1}#airevo-shop .shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#airevo-shop .shop-product-photo{height:155px}#airevo-shop .shop-product-body{padding:12px}#airevo-shop .shop-product h3{font-size:12px;min-height:34px}#airevo-shop .shop-product p{font-size:9px;min-height:48px}#airevo-shop .shop-price{font-size:13px}#airevo-shop .shop-add{font-size:9px;padding:9px 4px}#airevo-shop .shop-filters{gap:6px}#airevo-shop .shop-filter{padding:8px 10px;font-size:9px}.airevo-product-detail{grid-template-columns:1fr}.airevo-product-detail>img{height:220px;min-height:0}.airevo-detail-copy{padding:22px}.airevo-checkout{padding:23px 18px}.airevo-checkout-grid{grid-template-columns:1fr}.airevo-checkout-grid label.full{grid-column:auto}}
+
+
+/* Airevo bright premium theme */
+#airevo-shop{background:#f7f9fa!important;color:#253746!important}
+#airevo-shop .shop-title h2{color:#18334a}
+#airevo-shop .shop-title p{color:#687d8b}
+#airevo-shop .shop-filter{border-color:#dbe5eb;background:#fff;color:#526a7b}
+#airevo-shop .shop-filter.active,#airevo-shop .shop-filter:hover{background:#168fd0;color:#fff;border-color:#168fd0}
+#airevo-shop .shop-product{border-color:#e4ebef;box-shadow:0 8px 25px #173b5208}
+#airevo-shop .shop-product:hover{box-shadow:0 18px 38px #173b5214}
+#airevo-shop .shop-product-photo{background:#eef3f6}
+#airevo-shop .shop-badge{background:#e5f2f8;color:#17658f;border:1px solid #d1e7f2}
+#airevo-shop .shop-product h3{color:#263e50}
+#airevo-shop .shop-price{color:#18334a}
+#airevo-shop .shop-add{background:#168fd0;color:#fff}
+#airevo-shop .shop-add:hover{background:#0d75b0}
+#airevo-shop .shop-view{background:#edf5f9;color:#31566e}
+#airevo-cart-count{border-color:#fff;background:#168fd0}
+.airevo-drawer-backdrop{background:#1b30445c}
+.airevo-drawer{background:#fff}
+.airevo-drawer-head h3,.airevo-drawer-bottom .sum{color:#18334a}
+.airevo-modal-bg{background:#1b30446b}
+.airevo-modal{box-shadow:0 25px 70px #18334a24}
+.airevo-primary{background:#168fd0}
+.airevo-primary:hover{background:#0d75b0}
+.airevo-toast{background:#18334a;box-shadow:0 10px 30px #18334a22}
+.airevo-checkout-summary{background:#f0f6f9;color:#4d6475}
+.airevo-pay-option{border-color:#e2eaf0;background:#fbfdfe}
+.airevo-detail-copy h3,.airevo-checkout h3{color:#18334a}
+.airevo-cart-item{border-color:#edf1f4}
+.airevo-qty button{background:#edf4f7;color:#26485e}

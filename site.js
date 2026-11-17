@@ -107,7 +107,7 @@ function categoryPage(){
 }
 function collectionPage(){
  const type=new URL(location.href).searchParams.get('type')||'trending',title=type==='popular'?'Popular choices':type==='new'?'New arrivals':'Trending now';
- const items=type==='popular'?S.products.filter(p=>p.is_popular):type==='new'?S.products.slice(-6):S.products.filter(p=>p.is_trending);
+ const items=type==='popular'?S.products.filter(p=>p.is_popular):type==='new'?S.products.slice(0,6):S.products.filter(p=>p.is_trending);
  return heroHead('Curated collections',title,'A curated way to discover kitchen appliances by what is new, popular or trending.')+'<section class="section"><div class="container"><div class="collection-tabs"><a class="'+(type==='trending'?'active':'')+'" href="/collection.html?type=trending">Trending now</a><a class="'+(type==='popular'?'active':'')+'" href="/collection.html?type=popular">Popular choices</a><a class="'+(type==='new'?'active':'')+'" href="/collection.html?type=new">New arrivals</a></div>'+cards(items)+'<div class="section-action"><a href="/catalogue.html" class="btn dark">Browse all products ↗</a></div></div></section>';
 }
 function approachPage(){
@@ -270,7 +270,7 @@ async function render(){
  else if(page==='admin')content=adminPage();
  else if(page==='blog')content=blogPage();
  else if(page==='blog-post')content=blogPostPage();
- else content=home();
+ else content=await home();
  shell(content);slider();bindCatalogue();productImages();bindContact();bindReviews();
  if(page==='login')window.AirevoAuth?.customerBoot();
  if(page==='admin')window.AirevoAuth?.adminBootForm();

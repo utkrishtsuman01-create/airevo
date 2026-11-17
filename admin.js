@@ -192,8 +192,8 @@ async function editVariants(s,p){
  const mount=()=>{const target=$('#variant-form-mount',box);const current=box.querySelector('#variant-edit-form');if(current)current.remove();renderForm(null)};
  $('#variant-new').onclick=mount;
  $('#variant-close').onclick=()=>box.hidden=true;
- $$('#[data-variant-edit]',box).forEach(b=>b.onclick=()=>renderForm(list.find(v=>v.id===b.dataset.variantEdit)));
- $$('#[data-variant-delete]',box).forEach(b=>b.onclick=async()=>{
+ $('[data-variant-edit]',box).forEach(b=>b.onclick=()=>renderForm(list.find(v=>v.id===b.dataset.variantEdit)));
+ $('[data-variant-delete]',box).forEach(b=>b.onclick=async()=>{
   if(!confirm('Delete this variant permanently?'))return;
   const {error}=await s.from('product_variants').delete().eq('id',b.dataset.variantDelete);
   if(error){notify(error.message);return}notify('Variant deleted');await editVariants(s,p);

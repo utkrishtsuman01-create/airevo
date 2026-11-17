@@ -240,3 +240,26 @@
  #airevo-shop .shop-product p{font-size:9px}
  #airevo-shop .shop-add{padding:10px 5px}
 }
+
+/* Airevo balanced blue / silver product palette */
+#airevo-shop{background:linear-gradient(135deg,#f7fafb 0%,#edf4f7 100%)!important}
+#airevo-shop .shop-title{background:linear-gradient(110deg,#fff 0%,#eaf5fa 100%);border-color:#dce9ef;box-shadow:0 8px 24px #294b6209}
+#airevo-shop .shop-product{background:#fff;border-color:#dfe8ed;box-shadow:0 7px 22px #294b6209;border-radius:14px;overflow:hidden}
+#airevo-shop .shop-product:nth-child(3n+1){background:linear-gradient(160deg,#fff 0%,#f0f8fb 100%)}
+#airevo-shop .shop-product:nth-child(3n+2){background:linear-gradient(160deg,#fff 0%,#f1f4f6 100%)}
+#airevo-shop .shop-product:nth-child(3n){background:linear-gradient(160deg,#f3f9fb 0%,#e4f1f6 100%)}
+#airevo-shop .shop-product:before{height:3px;background:linear-gradient(90deg,#149bd8,#8cc9e2)}
+#airevo-shop .shop-product:nth-child(3n+2):before{background:linear-gradient(90deg,#aebdc7,#e3eaee)}
+#airevo-shop .shop-product:nth-child(3n):before{background:linear-gradient(90deg,#6bb8dc,#d6e9f1)}
+#airevo-shop .shop-product-photo{background:linear-gradient(145deg,#e4f1f7,#f8fbfc);padding:9px}
+#airevo-shop .shop-product:nth-child(3n+2) .shop-product-photo{background:linear-gradient(145deg,#e7ecef,#f9fbfc)}
+#airevo-shop .shop-product:nth-child(3n) .shop-product-photo{background:linear-gradient(145deg,#dceef5,#f3f8fa)}
+#airevo-shop .shop-product-photo img{border-radius:8px}
+#airevo-shop .shop-product-body,#airevo-shop .shop-product:nth-child(2n) .shop-product-body,#airevo-shop .shop-product:nth-child(3n) .shop-product-body{background:transparent}
+#airevo-shop .shop-add{background:linear-gradient(110deg,#118fc9,#35b3e5);box-shadow:0 5px 13px #159de020}
+#airevo-shop .shop-add:hover{background:#087db8}
+#airevo-shop .shop-view{background:#e8f1f5;border-color:#d7e5ec;color:#31566e}
+#airevo-shop .shop-filter.active,#airevo-shop .shop-filter:hover{background:#168fc9;border-color:#168fc9}
+.airevo-drawer-head{background:linear-gradient(100deg,#edf5f8,#fff)}
+.airevo-checkout-summary{background:linear-gradient(110deg,#eaf5f9,#f6f9fa);border-color:#dce9ef}
+.airevo-pay-option{background:linear-gradient(110deg,#fff,#f1f6f8);border-color:#dce7ed}

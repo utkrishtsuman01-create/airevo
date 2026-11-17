@@ -67,8 +67,8 @@ async function products(s,host){
  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Products & variants</h3><p>Up to five images per product or variant, stock, pricing, dimensions and shipping weights.</p></div><button class="btn" id="product-new">Add product</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Category</th><th>MRP</th><th>Sale price</th><th>Stock</th><th>Variants</th><th>Status</th><th>Action</th></tr></thead><tbody>'+list.map(p=>'<tr><td>'+esc(p.name)+'<br><small>'+esc(p.sku||'')+'</small></td><td>'+esc(p.categories?.name||'')+'</td><td>'+money(p.mrp)+'</td><td>'+money(p.sale_price)+'</td><td>'+p.stock_qty+'</td><td>'+((p.product_variants||[]).length)+'</td><td>'+ (p.is_active?'Active':'Draft')+'</td><td><button data-product-edit="'+p.id+'">Edit</button> <button data-product-variants="'+p.id+'">Variants</button> <button data-product-delete="'+p.id+'">Delete</button></td></tr>').join('')+'</tbody></table></div></div><div class="admin-panel" id="product-editor" hidden></div><div class="admin-panel" id="variant-editor" hidden></div>';
  $('#product-new').onclick=()=>editProduct(s,null);
  $$('[data-product-edit]').forEach(b=>b.onclick=()=>editProduct(s,list.find(p=>p.id===b.dataset.productEdit)));
- $('[data-product-variants]').forEach(b=>b.onclick=()=>editVariants(s,list.find(p=>p.id===b.dataset.productVariants)));
- $('[data-product-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this product and its variants permanently?'))return;const {error}=await s.from('products').delete().eq('id',b.dataset.productDelete);if(error){notify(error.message);return}notify('Product deleted');await products(s,host)});
+ $$('[data-product-variants]').forEach(b=>b.onclick=()=>editVariants(s,list.find(p=>p.id===b.dataset.productVariants)));
+ $$('[data-product-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this product and its variants permanently?'))return;const {error}=await s.from('products').delete().eq('id',b.dataset.productDelete);if(error){notify(error.message);return}notify('Product deleted');await products(s,host)});
 }
 async function uploadImages(s,files){
  const urls=[];for(const file of Array.from(files).slice(0,5)){
@@ -134,36 +134,77 @@ async function editVariants(s,p){
  const box=$('#variant-editor');box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'start'});
  const r=await s.from('product_variants').select('*').eq('product_id',p.id).order('sort_order');if(r.error){box.innerHTML=panelError(r.error);return}
  const list=r.data||[];
- box.innerHTML='<h3>Variants — '+esc(p.name)+'</h3><p>Separate size, finish or model options. Each variant has its own stock, price, shipping dimensions and up to five images.</p>'+
- '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Variant</th><th>SKU</th><th>MRP</th><th>Sale</th><th>Stock</th><th></th></tr></thead><tbody>'+list.map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+esc(v.sku||'')+'</td><td>'+money(v.mrp)+'</td><td>'+money(v.sale_price)+'</td><td>'+v.stock_qty+'</td><td><button data-variant-edit="'+v.id+'">Edit</button> <button data-variant-delete="'+v.id+'">Delete</button></td></tr>').join('')+'</tbody></table></div>'+
- '<form id="variant-form" class="admin-form-grid"><h4 class="field full">Add variant</h4>'+adminFormField('Variant name','name','','text',{required:true})+adminFormField('SKU','sku','')+
- adminFormField('MRP (₹)','mrp',0,'number',{step:'0.01',min:0})+adminFormField('Discounted price (₹)','sale_price',0,'number',{step:'0.01',min:0})+
- adminFormField('Stock','stock_qty',0,'number',{min:0})+adminFormField('Net weight (kg)','weight_kg','','number',{step:'0.001',min:0})+
- adminFormField('Package weight (kg)','package_weight_kg','','number',{step:'0.001',min:0})+
- adminFormField('Height (cm)','height_cm','','number',{step:'0.01',min:0})+adminFormField('Width (cm)','width_cm','','number',{step:'0.01',min:0})+adminFormField('Depth (cm)','depth_cm','','number',{step:'0.01',min:0})+
- adminFormField('Image URLs (up to five, one per line)','image_urls','','textarea',{full:true})+
- '<div class="field full"><button class="btn" type="submit">Add variant</button></div></form><button class="btn dark" id="variant-close" type="button">Close</button>';
- $('#variant-close').onclick=()=>box.hidden=true;
- $('#variant-form').onsubmit=async e=>{
-  e.preventDefault();const fd=new FormData(e.target);
-  const payload={product_id:p.id,name:fd.get('name').trim(),sku:fd.get('sku').trim()||null,mrp:Number(fd.get('mrp')||0),sale_price:Number(fd.get('sale_price')||0),stock_qty:Number(fd.get('stock_qty')||0),weight_kg:fd.get('weight_kg')?Number(fd.get('weight_kg')):null,package_weight_kg:fd.get('package_weight_kg')?Number(fd.get('package_weight_kg')):null,height_cm:fd.get('height_cm')?Number(fd.get('height_cm')):null,width_cm:fd.get('width_cm')?Number(fd.get('width_cm')):null,depth_cm:fd.get('depth_cm')?Number(fd.get('depth_cm')):null,image_urls:String(fd.get('image_urls')||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,5)};
-  const q=await s.from('product_variants').insert(payload);if(q.error){notify(q.error.message);return}notify('Variant added');await editVariants(s,p);
+ const field=(label,name,value,type='text',opts={})=>adminFormField(label,name,value,type,opts);
+ const renderForm=(v=null)=>{
+  box.querySelector('#variant-edit-form')?.remove();
+  const form=document.createElement('div');form.id='variant-edit-form';form.className='admin-panel';
+  form.innerHTML='<h4>'+(v?'Edit variant':'Add variant')+'</h4><form id="variant-form"><div class="admin-form-grid">'+
+   field('Variant name','name',v?.name||'','text',{required:true})+
+   field('SKU','sku',v?.sku||'')+
+   field('Model number','model_number',v?.model_number||'')+
+   field('MRP (₹)','mrp',v?.mrp??0,'number',{step:'0.01',min:0})+
+   field('Discounted price (₹)','sale_price',v?.sale_price??0,'number',{step:'0.01',min:0})+
+   field('Stock quantity','stock_qty',v?.stock_qty??0,'number',{min:0})+
+   field('Net weight (kg)','weight_kg',v?.weight_kg??'','number',{step:'0.001',min:0})+
+   field('Package / shipping weight (kg)','package_weight_kg',v?.package_weight_kg??'','number',{step:'0.001',min:0})+
+   field('Product height (cm)','height_cm',v?.height_cm??'','number',{step:'0.01',min:0})+
+   field('Product width (cm)','width_cm',v?.width_cm??'','number',{step:'0.01',min:0})+
+   field('Product depth (cm)','depth_cm',v?.depth_cm??'','number',{step:'0.01',min:0})+
+   field('Package height (cm)','package_height_cm',v?.package_height_cm??'','number',{step:'0.01',min:0})+
+   field('Package width (cm)','package_width_cm',v?.package_width_cm??'','number',{step:'0.01',min:0})+
+   field('Package depth (cm)','package_depth_cm',v?.package_depth_cm??'','number',{step:'0.01',min:0})+
+   field('Image URLs (up to five, one per line)','image_urls',(v?.image_urls||[]).join('\n'),'textarea',{full:true})+
+   '<div class="field full"><label>Or upload up to five variant images</label><input type="file" name="image_files" accept="image/jpeg,image/png,image/webp,image/avif" multiple><small>Images are stored in the Airevo product image bucket.</small></div>'+
+   field('Active on storefront','is_active',v?.is_active??true,'checkbox')+
+   field('Display order','sort_order',v?.sort_order??0,'number')+
+   '</div><div class="hero-buttons"><button class="btn" type="submit">'+(v?'Save variant':'Add variant')+'</button><button class="btn dark" id="variant-cancel" type="button">Cancel</button></div></form>';
+  box.appendChild(form);
+  form.querySelector('#variant-cancel').onclick=()=>form.remove();
+  form.querySelector('#variant-form').onsubmit=async e=>{
+   e.preventDefault();
+   const el=e.target,fd=new FormData(el),submit=el.querySelector('button[type="submit"]');submit.disabled=true;submit.textContent='Saving…';
+   try{
+    let imageUrls=String(fd.get('image_urls')||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,5);
+    const files=el.elements.image_files.files;
+    if(files.length){const uploaded=await uploadImages(s,files);imageUrls=[...uploaded,...imageUrls].slice(0,5)}
+    const num=n=>fd.get(n)===''||fd.get(n)===null?null:Number(fd.get(n));
+    const payload={
+     product_id:p.id,name:String(fd.get('name')||'').trim(),sku:String(fd.get('sku')||'').trim()||null,
+     model_number:String(fd.get('model_number')||'').trim()||null,
+     mrp:Number(fd.get('mrp')||0),sale_price:Number(fd.get('sale_price')||0),stock_qty:Number(fd.get('stock_qty')||0),
+     weight_kg:num('weight_kg'),package_weight_kg:num('package_weight_kg'),
+     height_cm:num('height_cm'),width_cm:num('width_cm'),depth_cm:num('depth_cm'),
+     package_height_cm:num('package_height_cm'),package_width_cm:num('package_width_cm'),package_depth_cm:num('package_depth_cm'),
+     image_urls:imageUrls,is_active:fd.has('is_active'),sort_order:Number(fd.get('sort_order')||0),
+     updated_at:new Date().toISOString()
+    };
+    const q=v?await s.from('product_variants').update(payload).eq('id',v.id):await s.from('product_variants').insert(payload);
+    if(q.error)throw q.error;
+    notify(v?'Variant updated':'Variant added');await editVariants(s,p);
+   }catch(err){notify(err.message||String(err))}
+   finally{submit.disabled=false;submit.textContent=v?'Save variant':'Add variant'}
+  };
  };
- $('[data-variant-edit]').forEach(b=>b.onclick=async()=>{
-  const v=list.find(x=>x.id===b.dataset.variantEdit);const name=prompt('Variant name',v.name);if(name===null)return;
-  const sku=prompt('SKU',v.sku||'');if(sku===null)return;
-  const stock=prompt('Stock quantity',String(v.stock_qty));if(stock===null)return;
-  const {error}=await s.from('product_variants').update({name,sku:sku||null,stock_qty:Math.max(0,Number(stock)||0)}).eq('id',v.id);
-  if(error)notify(error.message);else{notify('Variant updated');await editVariants(s,p)}
+ box.innerHTML='<h3>Variants — '+esc(p.name)+'</h3><p>Manage size, finish and model options, individual pricing, availability, shipping dimensions and images.</p>'+
+  '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Variant</th><th>SKU / model</th><th>MRP</th><th>Sale price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+  (list.length?list.map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+esc(v.sku||v.model_number||'—')+'</td><td>'+money(v.mrp)+'</td><td>'+money(v.sale_price)+'</td><td>'+v.stock_qty+'</td><td>'+(v.is_active?'Active':'Hidden')+'</td><td><button data-variant-edit="'+v.id+'">Edit</button> <button data-variant-delete="'+v.id+'">Delete</button></td></tr>').join(''):'<tr><td colspan="7">No variants yet.</td></tr>')+
+  '</tbody></table></div><div id="variant-form-mount"></div><div class="hero-buttons"><button class="btn" id="variant-new" type="button">Add variant</button><button class="btn dark" id="variant-close" type="button">Close</button></div>';
+ const mount=()=>{const target=$('#variant-form-mount',box);const current=box.querySelector('#variant-edit-form');if(current)current.remove();renderForm(null)};
+ $('#variant-new').onclick=mount;
+ $('#variant-close').onclick=()=>box.hidden=true;
+ $$('#[data-variant-edit]',box).forEach(b=>b.onclick=()=>renderForm(list.find(v=>v.id===b.dataset.variantEdit)));
+ $$('#[data-variant-delete]',box).forEach(b=>b.onclick=async()=>{
+  if(!confirm('Delete this variant permanently?'))return;
+  const {error}=await s.from('product_variants').delete().eq('id',b.dataset.variantDelete);
+  if(error){notify(error.message);return}notify('Variant deleted');await editVariants(s,p);
  });
- $('[data-variant-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this variant?'))return;const {error}=await s.from('product_variants').delete().eq('id',b.dataset.variantDelete);if(error){notify(error.message);return}notify('Variant deleted');await editVariants(s,p)});
 }
 async function categories(s,host){
  const r=await s.from('categories').select('*').order('sort_order');if(r.error)throw r.error;const list=r.data||[];
  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Categories</h3><p>Manage the appliance types in the hover menu and category pages.</p></div><button class="btn" id="category-new">Add category</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Slug</th><th>Active</th><th>Sort</th><th></th></tr></thead><tbody>'+list.map(c=>'<tr><td>'+esc(c.name)+'</td><td>'+esc(c.slug)+'</td><td>'+c.is_active+'</td><td>'+c.sort_order+'</td><td><button data-category-edit="'+c.id+'">Edit</button> <button data-category-delete="'+c.id+'">Delete</button></td></tr>').join('')+'</tbody></table></div></div><div id="category-editor" class="admin-panel" hidden></div>';
  $('#category-new').onclick=()=>categoryForm(s,null);
- $('[data-category-edit]').forEach(b=>b.onclick=()=>categoryForm(s,list.find(x=>x.id===b.dataset.categoryEdit)));
- $('[data-category-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this category? Products will remain but become uncategorised.'))return;const {error}=await s.from('categories').delete().eq('id',b.dataset.categoryDelete);if(error){notify(error.message);return}notify('Category deleted');await categories(s,host)});
+ $$('[data-category-edit]').forEach(b=>b.onclick=()=>categoryForm(s,list.find(x=>x.id===b.dataset.categoryEdit)));
+ $$('[data-category-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this category? Products will remain but become uncategorised.'))return;const {error}=await s.from('categories').delete().eq('id',b.dataset.categoryDelete);if(error){notify(error.message);return}notify('Category deleted');await categories(s,host)});
 }
 async function categoryForm(s,c){
  const box=$('#category-editor');box.hidden=false;box.innerHTML='<h3>'+(c?'Edit':'Add')+' category</h3><form id="category-form" class="admin-form-grid">'+

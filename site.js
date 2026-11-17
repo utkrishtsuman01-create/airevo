@@ -23,6 +23,7 @@ const slides=[
 ];
 function toast(t){let e=$('#site-toast');if(!e){e=document.createElement('div');e.id='site-toast';e.className='toast';document.body.appendChild(e)}e.textContent=t;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),2600)}
 async function load(){
+ if(!db()&&window.airevoSupabaseReady)await window.airevoSupabaseReady;
  const s=db();if(!s)return;
  if(S.dataLoaded)return true;
  if(!S.dataLoading){

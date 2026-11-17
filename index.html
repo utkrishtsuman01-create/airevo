@@ -297,7 +297,7 @@ modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 document.getElementById('enquiryForm').addEventListener('submit',e=>{e.preventDefault();const d=new FormData(e.currentTarget);const msg=['Hello Airevo, I would like to make an enquiry.','Name: '+d.get('name'),'Phone: '+d.get('phone'),'Email: '+(d.get('email')||'Not provided'),'Interested in: '+d.get('interest'),'Message: '+(d.get('message')||'Not provided')].join('\n');window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener');closeModal();});
 document.getElementById('year').textContent=new Date().getFullYear();
-if(!sessionStorage.getItem('airevo-intro-seen')){setTimeout(()=>{openModal();sessionStorage.setItem('airevo-intro-seen','1')},1300)}
+setTimeout(()=>{openModal()},1300);
 document.querySelectorAll('.navlinks a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navlinks').classList.remove('open')));
 </script>
 <script src="/commerce.js" defer></script>

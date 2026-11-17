@@ -239,14 +239,26 @@ section{position:relative}
 @media(max-width:600px){.featurecards{gap:10px}.fcard{min-height:185px}}
 </style>
 <style id="airevo-top-contact-bar">
-.airevo-contactbar{padding:0;background:#eaf4f8;color:#476477;border-bottom:1px solid #dce8ee;text-align:left}
-.airevo-contactbar-inner{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:18px}
-.airevo-contact-details{display:flex;align-items:center;gap:22px}
-.airevo-contact-details a{display:inline-flex;align-items:center;gap:8px;color:#31566e;font-size:11px;font-weight:700;letter-spacing:.025em}
+.airevo-contactbar{width:100%;padding:0;background:#eaf4f8;color:#476477;border-bottom:1px solid #dce8ee;text-align:left}
+.airevo-contactbar-inner{width:100%;max-width:none;margin:0;min-height:40px;padding:0 clamp(16px,3vw,48px);display:flex;align-items:center;justify-content:space-between;gap:24px}
+.airevo-contact-details{display:flex;align-items:center;gap:clamp(18px,3vw,38px);min-width:0}
+.airevo-contact-details a{display:inline-flex;align-items:center;gap:8px;color:#31566e;font-size:11px;font-weight:700;letter-spacing:.025em;white-space:nowrap}
 .airevo-contact-details a:hover{color:#0c91cf}
-.airevo-topline-note{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6d8290}
+.airevo-topline-note{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6d8290;text-align:right}
 .airevo-topline-note span{color:#159bd8;padding:0 5px}
-@media(max-width:650px){.airevo-contactbar-inner{min-height:36px;justify-content:center}.airevo-topline-note{display:none}.airevo-contact-details a{font-size:10px}}
+@media(max-width:650px){
+ .airevo-contactbar-inner{min-height:0;padding:9px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+ .airevo-contact-details{display:contents}
+ .airevo-contact-details a{font-size:10px;gap:6px;white-space:normal;min-width:0}
+ .airevo-contact-details a:first-child{justify-self:start}
+ .airevo-contact-details a:last-child{justify-self:end}
+ .airevo-topline-note{grid-column:1/-1;text-align:center;font-size:8px;letter-spacing:.055em;line-height:1.4}
+}
+@media(max-width:360px){
+ .airevo-contactbar-inner{padding-left:10px;padding-right:10px;column-gap:6px}
+ .airevo-contact-details a{font-size:9px;gap:4px}
+ .airevo-topline-note{font-size:7px}
+}
 </style>
 </head>
 <body>

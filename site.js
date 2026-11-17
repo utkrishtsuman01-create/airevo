@@ -4,7 +4,7 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.quer
 const app=$('#app'), page=document.body.dataset.page||'home', db=()=>window.airevoSupabase;
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'₹'+Number(v||0).toLocaleString('en-IN'), phone='+91 98361 47993', email='info@airevo.com';
-const S={categories:[],products:[],collections:[],blogs:[],cart:JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]')};
+const S={categories:[],products:[],collections:[],blogs:[],cart:(()=>{try{const value=JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]');return Array.isArray(value)?value:[]}catch(e){console.warn('Airevo cart storage could not be read',e);return[]}})(),dataLoaded:false,dataLoading:null};
 const IMG={
  chimney:'https://faberindia.com/cdn/shop/products/P5A7112_compact.jpg?v=1680244428',
  microwave:'https://nandilathgmart.com/wp-content/uploads/2022/02/25sc4_25l_convection_microwave_rv_5-c1b.png',
@@ -24,13 +24,26 @@ const slides=[
 function toast(t){let e=$('#site-toast');if(!e){e=document.createElement('div');e.id='site-toast';e.className='toast';document.body.appendChild(e)}e.textContent=t;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),2600)}
 async function load(){
  const s=db();if(!s)return;
- const [c,p,b,co]=await Promise.all([
- s.from('categories').select('*').eq('is_active',true).order('sort_order'),
- s.from('products').select('*,categories(name,slug),product_variants(*)').eq('is_active',true).order('created_at',{ascending:false}),
- s.from('blog_posts').select('*').eq('status','published').order('published_at',{ascending:false}).limit(6),
- s.from('collections').select('*,collection_products(collection_id,product_id,sort_order)').eq('is_active',true).order('sort_order')
- ]);
- if(!c.error)S.categories=c.data||[];if(!p.error)S.products=p.data||[];if(!b.error)S.blogs=b.data||[];if(!co.error)S.collections=co.data||[];
+ if(S.dataLoaded)return true;
+ if(!S.dataLoading){
+  S.dataLoading=Promise.all([
+   s.from('categories').select('*').eq('is_active',true).order('sort_order'),
+   s.from('products').select('*,categories(name,slug),product_variants(*)').eq('is_active',true).order('created_at',{ascending:false}),
+   s.from('blog_posts').select('*').eq('status','published').order('published_at',{ascending:false}).limit(6),
+   s.from('collections').select('*,collection_products(collection_id,product_id,sort_order)').eq('is_active',true).order('sort_order')
+  ]).then(([c,p,b,co])=>{
+   if(!c.error)S.categories=c.data||[];
+   if(!p.error)S.products=p.data||[];
+   if(!b.error)S.blogs=b.data||[];
+   if(!co.error)S.collections=co.data||[];
+   S.dataLoaded=true;
+   return true;
+  }).catch(error=>{
+   S.dataLoading=null;
+   throw error;
+  });
+ }
+ return S.dataLoading;
 }
 const catSlug=p=>p.categories&&p.categories.slug||'';
 const image=p=>(p.image_urls&&p.image_urls[0])||IMG.microwave;
@@ -281,7 +294,11 @@ function productImages(){
  });
 }
 async function render(){
- await load();let content='';
+ let content='',loadTask=null,loadTimedOut=false;
+ try{
+  loadTask=load();
+  if(loadTask)await Promise.race([loadTask,new Promise(resolve=>setTimeout(()=>{loadTimedOut=true;resolve()},6000))]);
+ }catch(error){console.error('Airevo data loading failed; rendering the storefront without live catalogue data.',error)}
  try{
  if(page==='home')content=await home();
  else if(page==='catalogue')content=catalogue();
@@ -302,7 +319,10 @@ async function render(){
  if(page==='admin')window.AirevoAuth?.adminBootForm();
  if(page==='account')$('#signout-customer')?.addEventListener('click',async()=>{await db()?.auth.signOut();location.href='/'});
  }catch(e){console.error(e);shell(heroHead('Airevo','Something went wrong.','Please refresh the page or contact the Airevo team.')+'<section class="section"><div class="container">'+esc(e.message||e)+'</div></section>')}
+ if(loadTimedOut&&loadTask){
+  loadTask.then(()=>{if(!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
+ }
 }
-window.AirevoSite={render,toast,state,load};
+window.AirevoSite={render,toast,load};
 render();
 })();

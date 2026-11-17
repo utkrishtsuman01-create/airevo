@@ -68,7 +68,7 @@ async function products(s,host){
  $('#product-new').onclick=()=>editProduct(s,null);
  $$('[data-product-edit]').forEach(b=>b.onclick=()=>editProduct(s,list.find(p=>p.id===b.dataset.productEdit)));
  $$('[data-product-variants]').forEach(b=>b.onclick=()=>editVariants(s,list.find(p=>p.id===b.dataset.productVariants)));
- $$('[data-product-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this product and its variants permanently?'))return;const {error}=await s.from('products').update({is_active:false,updated_at:new Date().toISOString()}).eq('id',b.dataset.productDelete);if(error){notify(error.message);return}notify('Product hidden from storefront; order history is preserved');await products(s,host)});
+ $$('[data-product-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Hide this product from the storefront? Previous order history will be preserved.'))return;const {error}=await s.from('products').update({is_active:false,updated_at:new Date().toISOString()}).eq('id',b.dataset.productDelete);if(error){notify(error.message);return}notify('Product hidden from storefront; order history is preserved');await products(s,host)});
 }
 async function uploadImages(s,files){
  const urls=[];for(const file of Array.from(files).slice(0,5)){
@@ -194,7 +194,7 @@ async function editVariants(s,p){
  $('#variant-close').onclick=()=>box.hidden=true;
  $$('[data-variant-edit]',box).forEach(b=>b.onclick=()=>renderForm(list.find(v=>v.id===b.dataset.variantEdit)));
  $$('[data-variant-delete]',box).forEach(b=>b.onclick=async()=>{
-  if(!confirm('Delete this variant permanently?'))return;
+  if(!confirm('Hide this variant from the storefront? Previous orders will be preserved.'))return;
   const {error}=await s.from('product_variants').update({is_active:false,updated_at:new Date().toISOString()}).eq('id',b.dataset.variantDelete);
   if(error){notify(error.message);return}notify('Variant hidden from storefront; previous orders remain intact');await editVariants(s,p);
  });

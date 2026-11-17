@@ -159,3 +159,84 @@
 .airevo-cart-item{border-color:#e8eef2}
 .airevo-cart-item strong{color:#294357}
 .airevo-qty button{background:#eaf3f7;color:#31566d}
+
+
+/* Varied product-card and shopping-surface system */
+#airevo-shop{
+ background-color:#f3f8fa!important;
+ background-image:radial-gradient(#c3dce8 .9px,transparent .9px),linear-gradient(135deg,#f9fcfd,#edf5f8)!important;
+ background-size:20px 20px,auto!important;
+}
+#airevo-shop .shop-title{
+ padding:25px 28px;
+ border:1px solid #e0ebf1;
+ border-radius:18px 5px 18px 5px;
+ background:linear-gradient(110deg,#fff 0%,#eef7fb 100%);
+ box-shadow:0 12px 28px #24465c0a;
+ position:relative;overflow:hidden
+}
+#airevo-shop .shop-title:after{
+ content:"";position:absolute;width:150px;height:150px;right:-43px;top:-70px;
+ border:1px solid #bbdbe9;border-radius:50%;
+ box-shadow:0 0 0 13px #eaf5fa,0 0 0 26px #f3f9fb;opacity:.8
+}
+#airevo-shop .shop-title>*{position:relative;z-index:1}
+#airevo-shop .shop-toolbar{padding:15px;background:#ffffffd9;border:1px solid #e1eaf0;border-radius:14px;box-shadow:0 8px 20px #24465c08}
+#airevo-shop .shop-search{border-radius:9px;border-color:#dce8ee}
+#airevo-shop .shop-sort{border-radius:9px}
+#airevo-shop .shop-filters{gap:10px}
+#airevo-shop .shop-filter{border-radius:999px;padding:10px 16px;background:linear-gradient(180deg,#fff,#f4f9fb)}
+#airevo-shop .shop-grid{gap:19px}
+#airevo-shop .shop-product{
+ position:relative;overflow:hidden;
+ border:1px solid #dfe9ef;border-radius:18px 6px 18px 6px;
+ box-shadow:0 10px 25px #24465c0b;
+ transition:transform .28s,box-shadow .28s,border-color .28s
+}
+#airevo-shop .shop-product:nth-child(2n){border-radius:6px 18px 6px 18px}
+#airevo-shop .shop-product:nth-child(3n){border-radius:18px 18px 6px 18px}
+#airevo-shop .shop-product:before{
+ content:"";position:absolute;z-index:2;left:0;right:0;top:0;height:4px;
+ background:linear-gradient(90deg,#138fcb,#8bd3f0,#d1dce3)
+}
+#airevo-shop .shop-product:nth-child(2n):before{background:linear-gradient(90deg,#c4d0d8,#e7f0f4,#159de0)}
+#airevo-shop .shop-product:nth-child(3n):before{background:linear-gradient(90deg,#8bcde8,#dbe8ef,#6cb9de)}
+#airevo-shop .shop-product:hover{transform:translateY(-7px);border-color:#b8d8e7;box-shadow:0 22px 42px #24465c1c}
+#airevo-shop .shop-product-photo{height:224px;background:linear-gradient(145deg,#e7f1f5,#f8fbfc);padding:10px}
+#airevo-shop .shop-product-photo img{border-radius:11px 4px 11px 4px}
+#airevo-shop .shop-product:nth-child(2n) .shop-product-photo{background:repeating-linear-gradient(135deg,#edf4f7 0 15px,#e4eef3 15px 16px)}
+#airevo-shop .shop-product:nth-child(3n) .shop-product-photo{background:radial-gradient(circle at 100% 0%,#d0e8f3 0,transparent 55%),#f4f8fa}
+#airevo-shop .shop-badge{top:18px;left:18px;border-radius:999px;padding:7px 11px}
+#airevo-shop .shop-heart{top:17px;right:17px;box-shadow:0 3px 12px #18384d1c}
+#airevo-shop .shop-product-body{padding:18px 18px 20px;background:linear-gradient(180deg,#fff,#fafdfe)}
+#airevo-shop .shop-product:nth-child(2n) .shop-product-body{background:linear-gradient(145deg,#fff,#f0f7fa)}
+#airevo-shop .shop-product:nth-child(3n) .shop-product-body{background:radial-gradient(circle at 100% 100%,#e9f5fa 0,transparent 50%),#fff}
+#airevo-shop .shop-cat{letter-spacing:.19em}
+#airevo-shop .shop-product h3{font-size:15px;line-height:1.4;min-height:42px}
+#airevo-shop .shop-product p{font-size:11px;line-height:1.65;min-height:40px}
+#airevo-shop .shop-price{font-size:17px}
+#airevo-shop .shop-card-actions{margin-top:15px}
+#airevo-shop .shop-add{border-radius:999px;padding:12px 9px;background:linear-gradient(110deg,#0b8dcf,#2eafe6);box-shadow:0 7px 17px #119cda22}
+#airevo-shop .shop-view{border-radius:50%;border:1px solid #dce8ee}
+#airevo-shop .shop-footnote{padding:14px 17px;border-left:3px solid #91cde7;background:#ffffffb8}
+.airevo-drawer{border-left:1px solid #dfe9ef}
+.airevo-drawer-head{background:linear-gradient(90deg,#f3f8fa,#fff)}
+.airevo-drawer-bottom{background:linear-gradient(135deg,#fff,#f0f7fa)}
+.airevo-cart-item:nth-child(2n){background:#f7fafb;border-radius:10px;padding:12px}
+.airevo-modal{border-radius:18px 6px 18px 6px;overflow:auto}
+.airevo-product-detail>img{background:repeating-linear-gradient(135deg,#edf4f7 0 16px,#e4eef3 16px 17px)}
+.airevo-checkout{background:radial-gradient(circle at 100% 0%,#edf7fb 0,transparent 38%),#fff}
+.airevo-checkout-summary{border:1px solid #dceaf1;border-radius:10px;background:linear-gradient(120deg,#f0f8fb,#f9fcfd)}
+.airevo-pay-option{border-radius:10px;background:linear-gradient(120deg,#fff,#f6fafc)}
+.airevo-primary{border-radius:999px;box-shadow:0 8px 18px #119cda22}
+@media(max-width:700px){
+ #airevo-shop .shop-title{padding:20px 16px}
+ #airevo-shop .shop-toolbar{padding:10px}
+ #airevo-shop .shop-grid{gap:11px}
+ #airevo-shop .shop-product-photo{height:165px;padding:7px}
+ #airevo-shop .shop-product-photo img{border-radius:8px 3px 8px 3px}
+ #airevo-shop .shop-product-body{padding:12px}
+ #airevo-shop .shop-product h3{font-size:12px}
+ #airevo-shop .shop-product p{font-size:9px}
+ #airevo-shop .shop-add{padding:10px 5px}
+}

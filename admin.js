@@ -64,10 +64,11 @@ function adminFormField(label,name,value,type='text',opts={}){
 async function products(s,host){
  const r=await s.from('products').select('*,categories(name),product_variants(*)').order('created_at',{ascending:false});if(r.error)throw r.error;
  const list=r.data||[];
- host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Products & variants</h3><p>Up to five images per product or variant, stock, pricing, dimensions and shipping weights.</p></div><button class="btn" id="product-new">Add product</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Category</th><th>MRP</th><th>Sale price</th><th>Stock</th><th>Variants</th><th>Status</th><th>Action</th></tr></thead><tbody>'+list.map(p=>'<tr><td>'+esc(p.name)+'<br><small>'+esc(p.sku||'')+'</small></td><td>'+esc(p.categories?.name||'')+'</td><td>'+money(p.mrp)+'</td><td>'+money(p.sale_price)+'</td><td>'+p.stock_qty+'</td><td>'+((p.product_variants||[]).length)+'</td><td>'+ (p.is_active?'Active':'Draft')+'</td><td><button data-product-edit="'+p.id+'">Edit</button> <button data-product-variants="'+p.id+'">Variants</button></td></tr>').join('')+'</tbody></table></div></div><div class="admin-panel" id="product-editor" hidden></div><div class="admin-panel" id="variant-editor" hidden></div>';
+ host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Products & variants</h3><p>Up to five images per product or variant, stock, pricing, dimensions and shipping weights.</p></div><button class="btn" id="product-new">Add product</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Category</th><th>MRP</th><th>Sale price</th><th>Stock</th><th>Variants</th><th>Status</th><th>Action</th></tr></thead><tbody>'+list.map(p=>'<tr><td>'+esc(p.name)+'<br><small>'+esc(p.sku||'')+'</small></td><td>'+esc(p.categories?.name||'')+'</td><td>'+money(p.mrp)+'</td><td>'+money(p.sale_price)+'</td><td>'+p.stock_qty+'</td><td>'+((p.product_variants||[]).length)+'</td><td>'+ (p.is_active?'Active':'Draft')+'</td><td><button data-product-edit="'+p.id+'">Edit</button> <button data-product-variants="'+p.id+'">Variants</button> <button data-product-delete="'+p.id+'">Delete</button></td></tr>').join('')+'</tbody></table></div></div><div class="admin-panel" id="product-editor" hidden></div><div class="admin-panel" id="variant-editor" hidden></div>';
  $('#product-new').onclick=()=>editProduct(s,null);
  $$('[data-product-edit]').forEach(b=>b.onclick=()=>editProduct(s,list.find(p=>p.id===b.dataset.productEdit)));
- $$('[data-product-variants]').forEach(b=>b.onclick=()=>editVariants(s,list.find(p=>p.id===b.dataset.productVariants)));
+ $('[data-product-variants]').forEach(b=>b.onclick=()=>editVariants(s,list.find(p=>p.id===b.dataset.productVariants)));
+ $('[data-product-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this product and its variants permanently?'))return;const {error}=await s.from('products').delete().eq('id',b.dataset.productDelete);if(error){notify(error.message);return}notify('Product deleted');await products(s,host)});
 }
 async function uploadImages(s,files){
  const urls=[];for(const file of Array.from(files).slice(0,5)){
@@ -134,7 +135,7 @@ async function editVariants(s,p){
  const r=await s.from('product_variants').select('*').eq('product_id',p.id).order('sort_order');if(r.error){box.innerHTML=panelError(r.error);return}
  const list=r.data||[];
  box.innerHTML='<h3>Variants — '+esc(p.name)+'</h3><p>Separate size, finish or model options. Each variant has its own stock, price, shipping dimensions and up to five images.</p>'+
- '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Variant</th><th>SKU</th><th>MRP</th><th>Sale</th><th>Stock</th><th></th></tr></thead><tbody>'+list.map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+esc(v.sku||'')+'</td><td>'+money(v.mrp)+'</td><td>'+money(v.sale_price)+'</td><td>'+v.stock_qty+'</td><td><button data-variant-edit="'+v.id+'">Edit</button></td></tr>').join('')+'</tbody></table></div>'+
+ '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Variant</th><th>SKU</th><th>MRP</th><th>Sale</th><th>Stock</th><th></th></tr></thead><tbody>'+list.map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+esc(v.sku||'')+'</td><td>'+money(v.mrp)+'</td><td>'+money(v.sale_price)+'</td><td>'+v.stock_qty+'</td><td><button data-variant-edit="'+v.id+'">Edit</button> <button data-variant-delete="'+v.id+'">Delete</button></td></tr>').join('')+'</tbody></table></div>'+
  '<form id="variant-form" class="admin-form-grid"><h4 class="field full">Add variant</h4>'+adminFormField('Variant name','name','','text',{required:true})+adminFormField('SKU','sku','')+
  adminFormField('MRP (₹)','mrp',0,'number',{step:'0.01',min:0})+adminFormField('Discounted price (₹)','sale_price',0,'number',{step:'0.01',min:0})+
  adminFormField('Stock','stock_qty',0,'number',{min:0})+adminFormField('Net weight (kg)','weight_kg','','number',{step:'0.001',min:0})+
@@ -148,19 +149,21 @@ async function editVariants(s,p){
   const payload={product_id:p.id,name:fd.get('name').trim(),sku:fd.get('sku').trim()||null,mrp:Number(fd.get('mrp')||0),sale_price:Number(fd.get('sale_price')||0),stock_qty:Number(fd.get('stock_qty')||0),weight_kg:fd.get('weight_kg')?Number(fd.get('weight_kg')):null,package_weight_kg:fd.get('package_weight_kg')?Number(fd.get('package_weight_kg')):null,height_cm:fd.get('height_cm')?Number(fd.get('height_cm')):null,width_cm:fd.get('width_cm')?Number(fd.get('width_cm')):null,depth_cm:fd.get('depth_cm')?Number(fd.get('depth_cm')):null,image_urls:String(fd.get('image_urls')||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,5)};
   const q=await s.from('product_variants').insert(payload);if(q.error){notify(q.error.message);return}notify('Variant added');await editVariants(s,p);
  };
- $$('[data-variant-edit]').forEach(b=>b.onclick=async()=>{
+ $('[data-variant-edit]').forEach(b=>b.onclick=async()=>{
   const v=list.find(x=>x.id===b.dataset.variantEdit);const name=prompt('Variant name',v.name);if(name===null)return;
   const sku=prompt('SKU',v.sku||'');if(sku===null)return;
   const stock=prompt('Stock quantity',String(v.stock_qty));if(stock===null)return;
   const {error}=await s.from('product_variants').update({name,sku:sku||null,stock_qty:Math.max(0,Number(stock)||0)}).eq('id',v.id);
   if(error)notify(error.message);else{notify('Variant updated');await editVariants(s,p)}
  });
+ $('[data-variant-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this variant?'))return;const {error}=await s.from('product_variants').delete().eq('id',b.dataset.variantDelete);if(error){notify(error.message);return}notify('Variant deleted');await editVariants(s,p)});
 }
 async function categories(s,host){
  const r=await s.from('categories').select('*').order('sort_order');if(r.error)throw r.error;const list=r.data||[];
- host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Categories</h3><p>Manage the appliance types in the hover menu and category pages.</p></div><button class="btn" id="category-new">Add category</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Slug</th><th>Active</th><th>Sort</th><th></th></tr></thead><tbody>'+list.map(c=>'<tr><td>'+esc(c.name)+'</td><td>'+esc(c.slug)+'</td><td>'+c.is_active+'</td><td>'+c.sort_order+'</td><td><button data-category-edit="'+c.id+'">Edit</button></td></tr>').join('')+'</tbody></table></div></div><div id="category-editor" class="admin-panel" hidden></div>';
+ host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Categories</h3><p>Manage the appliance types in the hover menu and category pages.</p></div><button class="btn" id="category-new">Add category</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Slug</th><th>Active</th><th>Sort</th><th></th></tr></thead><tbody>'+list.map(c=>'<tr><td>'+esc(c.name)+'</td><td>'+esc(c.slug)+'</td><td>'+c.is_active+'</td><td>'+c.sort_order+'</td><td><button data-category-edit="'+c.id+'">Edit</button> <button data-category-delete="'+c.id+'">Delete</button></td></tr>').join('')+'</tbody></table></div></div><div id="category-editor" class="admin-panel" hidden></div>';
  $('#category-new').onclick=()=>categoryForm(s,null);
- $$('[data-category-edit]').forEach(b=>b.onclick=()=>categoryForm(s,list.find(x=>x.id===b.dataset.categoryEdit)));
+ $('[data-category-edit]').forEach(b=>b.onclick=()=>categoryForm(s,list.find(x=>x.id===b.dataset.categoryEdit)));
+ $('[data-category-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this category? Products will remain but become uncategorised.'))return;const {error}=await s.from('categories').delete().eq('id',b.dataset.categoryDelete);if(error){notify(error.message);return}notify('Category deleted');await categories(s,host)});
 }
 async function categoryForm(s,c){
  const box=$('#category-editor');box.hidden=false;box.innerHTML='<h3>'+(c?'Edit':'Add')+' category</h3><form id="category-form" class="admin-form-grid">'+

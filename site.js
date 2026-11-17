@@ -163,6 +163,20 @@ function bindCatalogue(){
  function run(){let items=S.products.filter(p=>(!cat?.value||catSlug(p)===cat.value)&&(p.name+' '+(p.short_description||'')+' '+(p.categories?.name||'')).toLowerCase().includes((search?.value||'').toLowerCase()));if(sort?.value==='price-low')items.sort((a,b)=>a.sale_price-b.sale_price);if(sort?.value==='price-high')items.sort((a,b)=>b.sale_price-a.sale_price);if(sort?.value==='name')items.sort((a,b)=>a.name.localeCompare(b.name));grid.innerHTML=cards(items)}
  search?.addEventListener('input',run);sort?.addEventListener('change',run);cat?.addEventListener('change',()=>{const u=new URL(location.href);if(cat.value)u.searchParams.set('category',cat.value);else u.searchParams.delete('category');history.replaceState({},'',u);run()});run();
 }
+async function bindReviews(){
+ const s=db(),form=$('#review-form');if(!s||!form)return;
+ const status=$('#review-status');
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const {data:{session}}=await s.auth.getSession(),user=session?.user;
+  if(!user){location.href='/login.html?next=%2Freviews.html';return}
+  if(!user.email_confirmed_at){status.textContent='Please verify your email address before submitting a review.';status.className='status-message show error';return}
+  const payload={user_id:user.id,customer_name:$('#review-name').value.trim()||user.user_metadata?.full_name||user.email,rating:Number($('#review-rating').value),title:$('#review-title').value.trim(),body:$('#review-body').value.trim(),is_approved:false,is_verified_purchase:false};
+  const {error}=await s.from('reviews').insert(payload);
+  status.textContent=error?'Unable to submit review: '+error.message:'Thank you. Your review has been submitted for moderation. Only approved five-star reviews appear publicly.';
+  status.className='status-message show'+(error?' error':'');if(!error)form.reset();
+ });
+}
 function productImages(){ $$('[data-product-image]').forEach(b=>b.onclick=()=>{$('#product-main-image').src=b.dataset.productImage;$$('[data-product-image]').forEach(x=>x.classList.toggle('active',x===b))})}
 function bindContact(){
  const s=db(),f=$('#contact-form');if(!s||!f)return;f.onsubmit=async e=>{e.preventDefault();const status=$('#contact-status');status.textContent='Sending…';status.className='status-message show';const {error}=await s.from('contact_inquiries').insert({name:$('#contact-name').value.trim(),email:$('#contact-email').value.trim(),phone:$('#contact-phone').value.trim(),subject:$('#contact-subject').value,message:$('#contact-message').value.trim()});status.textContent=error?'Unable to send enquiry: '+error.message:'Thank you. Your enquiry has been saved.';status.className='status-message show'+(error?' error':'');if(!error)f.reset()}
@@ -225,7 +239,7 @@ async function render(){
  else if(page==='blog')content=blogPage();
  else if(page==='blog-post')content=blogPostPage();
  else content=home();
- shell(content);slider();bindCatalogue();productImages();bindContact();
+ shell(content);slider();bindCatalogue();productImages();bindContact();bindReviews();
  if(page==='login')window.AirevoAuth?.customerBoot();
  if(page==='admin')window.AirevoAuth?.adminBootForm();
  if(page==='account')$('#signout-customer')?.addEventListener('click',async()=>{await db()?.auth.signOut();location.href='/'});

@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const $=(s,r=document)=>r.querySelector(s);
+const $=(s,r=document)=>r.querySelector(s),$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const client=()=>window.airevoSupabase;
 function show(el,msg,error=false){if(!el)return;el.textContent=msg;el.className='status-message show'+(error?' error':'')}
 function redirectAfterLogin(){const u=new URL(location.href),to=u.searchParams.get('next');location.href=to&&to.startsWith('/')?to:'/account.html'}
@@ -93,7 +93,24 @@ function adminBootForm(){
  });
  const url=new URL(location.href);
  if(url.searchParams.get('verified')==='1')show(status,'Email verified. Sign in to check your admin access.');
- if(url.searchParams.get('type')==='recovery')show(status,'Use the password reset link on the email to return here and choose a new password.');
+ if(url.searchParams.get('type')==='recovery'){
+  form.hidden=true;
+  let reset=$('#admin-password-reset-form');
+  if(!reset){
+   reset=document.createElement('form');reset.id='admin-password-reset-form';reset.className='auth-form';
+   reset.innerHTML='<div class="field"><label>New password</label><input id="admin-reset-password" type="password" minlength="8" required></div><div class="field"><label>Confirm new password</label><input id="admin-reset-confirm" type="password" minlength="8" required></div><button class="btn">Update admin password</button>';
+   form.parentNode.insertBefore(reset,form.nextSibling);
+  }
+  reset.hidden=false;
+  reset.addEventListener('submit',async e=>{
+   e.preventDefault();
+   const p=$('#admin-reset-password').value;
+   if(p!==$('#admin-reset-confirm').value){show(status,'The passwords do not match.',true);return}
+   const {error}=await s.auth.updateUser({password:p});
+   show(status,error?error.message:'Your admin password has been updated. Sign in again.',!!error);
+   if(!error){await s.auth.signOut();reset.hidden=true;form.hidden=false;setMode('login')}
+  });
+ } else if(url.searchParams.get('verified')==='1')show(status,'Email verified. Sign in to check your admin access.');
  checkAdmin();
 }
 window.AirevoAuth={customerBoot,adminBootForm};

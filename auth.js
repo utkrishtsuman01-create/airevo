@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const $=(s,r=document)=>r.querySelector(s),$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const $=(s,r=document)=>r.querySelector(s),all=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const client=()=>window.airevoSupabase;
 function show(el,msg,error=false){if(!el)return;el.textContent=msg;el.className='status-message show'+(error?' error':'')}
 function redirectAfterLogin(){const u=new URL(location.href),to=u.searchParams.get('next');location.href=to&&to.startsWith('/')?to:'/account.html'}
@@ -10,7 +10,7 @@ function customerBoot(){
  if(!form)return;
  let mode='login';
  function setMode(next){
-  mode=next;$$('[data-auth-mode]').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));
+  mode=next;all('[data-auth-mode]').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));
   $('#auth-heading').textContent=mode==='signup'?'Create your Airevo account':'Sign in to your account';
   $('#auth-name-field').hidden=mode!=='signup';
   $('#auth-confirm-password-field').hidden=mode!=='signup';
@@ -18,7 +18,7 @@ function customerBoot(){
   $('#customer-auth-submit').textContent=mode==='signup'?'Create account':'Sign in';
   status.className='status-message';status.textContent='';
  }
- $$('[data-auth-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.authMode)));
+ all('[data-auth-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.authMode)));
  form.addEventListener('submit',async e=>{
   e.preventDefault();const email=$('#auth-email').value.trim(),password=$('#auth-password').value;
   const btn=$('#customer-auth-submit');btn.disabled=true;
@@ -57,12 +57,12 @@ function adminBootForm(){
  const form=$('#admin-auth-form'),status=$('#admin-auth-status');if(!form)return;
  let mode='login';
  function setMode(next){
-  mode=next;$$('[data-admin-mode]').forEach(b=>b.classList.toggle('active',b.dataset.adminMode===mode));
+  mode=next;all('[data-admin-mode]').forEach(b=>b.classList.toggle('active',b.dataset.adminMode===mode));
   $('#admin-name-field').hidden=mode!=='signup';$('#admin-confirm-field').hidden=mode!=='signup';
   $('#admin-auth-submit').textContent=mode==='signup'?'Create admin account request':'Sign in to admin';
   status.className='status-message';status.textContent='';
  }
- $$('[data-admin-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.adminMode)));
+ all('[data-admin-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.adminMode)));
  async function checkAdmin(){
   const {data:{session}}=await s.auth.getSession();if(!session)return false;
   const {data:role,error}=await s.from('user_roles').select('role').eq('user_id',session.user.id).maybeSingle();

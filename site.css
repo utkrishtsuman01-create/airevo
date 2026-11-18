@@ -96,3 +96,7 @@
 @media(max-width:1050px){.price-rail{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:850px){.container{width:calc(100% - 36px)}.price-rail{gap:10px}.price-rail a{padding:17px;min-height:125px}}
 @media(max-width:520px){.price-rail{grid-template-columns:1fr 1fr}.price-rail b{font-size:14px}.price-rail span{font-size:10px}}
+
+/* Keep the product detail hover panel from intercepting the primary purchase controls. */
+.product-hover{pointer-events:none}
+.product-card:hover .product-hover a,.product-card:focus-within .product-hover a{pointer-events:auto}

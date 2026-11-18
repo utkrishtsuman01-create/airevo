@@ -14,12 +14,12 @@ const IMG={
  air:'https://cosori.co.uk/cdn/shop/files/cp158black.jpg?v=1738999039&width=800'
 };
 const HERO={
- chimney:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2400&q=92',
- microwave:'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=2400&q=92',
- hob:'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2400&q=92',
- oven:'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=2400&q=92',
- dishwasher:'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=2400&q=92',
- air:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2400&q=92'
+ chimney:'https://www.electrolux.co.id/globalassets/appliances/cooker-hoods/ecc9312k/id-ecc9312k-feat-1500x1500.jpg?width=1920',
+ microwave:'https://static.wixstatic.com/media/74b241_a88927c445a64c869d34085357b68f51~mv2.png/v1/fit/w_1200%2Ch_1200%2Cq_90/file.png',
+ hob:'https://7fd2cf869625f0b37b1c-c07cbfcd218cb3fec64e336386273571.ssl.cf3.rackcdn.com/images/product-images/444411637_BEL%20GTG603-Xtxfa18v_1500_1500.jpg',
+ oven:'https://www.kitchenbrandstore.com/cdn/shop/files/1_713d3724-c8fe-442c-8181-043854e596f9.jpg?v=1754123572',
+ dishwasher:'https://image.coolblue.nl/max/1400xauto/products/1824738',
+ air:'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTAxL3Jhd3BpeGVsb2ZmaWNlNl9waG90b19vZl9hX2JsYWNrX21pbmltYWxfYWlyX2ZyeWVyX2Nvb2t3YXJlX29mZl9iMWMxOWY0My02YmNkLTQ2ZTgtYTllNC1jNjA2YmRiYTQ2OTBfMS5qcGc.jpg'
 };
 const slides=[
  ['A fresher way to cook','Make air the quietest luxury.','A beautiful kitchen starts with a space that feels as good as it looks. Discover chimney designs made for modern cooking.',HERO.chimney,'Modern premium kitchen interior','Explore Chimneys','/catalogue.html?category=chimneys','Book a Consultation','/contact.html?intent=chimney-consultation'],

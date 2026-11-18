@@ -75,18 +75,7 @@
   backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && backdrop.classList.contains('is-open')) close(); });
 
-  const params = new URLSearchParams(location.search);
-  const autoOpen = () => {
-    if (params.has('contact') || params.has('intent') || !sessionStorage.getItem('airevo-contact-popup-dismissed')) {
-      backdrop.classList.add('is-open');
-    }
-  };
-  backdrop.querySelector('.airevo-contact-close').addEventListener('click', () => {
-    sessionStorage.setItem('airevo-contact-popup-dismissed', '1');
-  });
-  backdrop.addEventListener('click', e => {
-    if (e.target === backdrop) sessionStorage.setItem('airevo-contact-popup-dismissed', '1');
-  });
+  const autoOpen = () => backdrop.classList.add('is-open');
   window.addEventListener('pageshow', () => setTimeout(autoOpen, 950), { once: true });
 
   const form = backdrop.querySelector('#airevo-contact-form');

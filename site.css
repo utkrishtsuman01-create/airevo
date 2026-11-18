@@ -155,3 +155,55 @@ body{background:#f4faff;color:#080b10}
 .whatsapp-float:hover{transform:translateY(-4px) scale(1.04);box-shadow:0 12px 30px #06131f45}
 .whatsapp-float svg{width:31px;height:31px;display:block}
 @media(max-width:520px){.whatsapp-float{right:16px;bottom:18px;width:54px;height:54px}.whatsapp-float svg{width:28px;height:28px}}
+
+
+/* Mobile-first correction: uncluttered header and fully visible appliance-led hero. */
+@media (max-width: 850px) {
+  .nav-wrap { min-height: 76px !important; gap: 12px !important; }
+  .brand { min-width: 0 !important; flex: 1 1 auto; gap: 9px !important; }
+  .brand-logo { width: 48px !important; height: 48px !important; }
+  .brand-name { font-size: 29px !important; }
+  .brand-name .brand-a { font-size: 35px !important; }
+  .brand-tag { font-size: 7px !important; letter-spacing: .16em !important; }
+  .menu-toggle { display: grid !important; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; margin-left: auto; padding: 0 !important; border: 1px solid #d9e8ef; background: #f2f9fc; border-radius: 12px; }
+  .nav-actions { display: none !important; }
+  .nav-main { top: 100% !important; left: 0 !important; right: 0 !important; width: 100% !important; max-height: calc(100dvh - 76px); overflow-y: auto; padding: 12px 18px 20px !important; border-radius: 0 0 16px 16px; }
+  .nav-link { min-height: 46px; font-size: 13px !important; }
+}
+@media (max-width: 600px) {
+  .topline { display: none !important; }
+  .site-header { position: sticky; top: 0; z-index: 100; }
+  .nav-wrap { min-height: 68px !important; width: calc(100% - 28px) !important; }
+  .brand-logo { width: 42px !important; height: 42px !important; }
+  .brand-name { font-size: 27px !important; }
+  .brand-name .brand-a { font-size: 33px !important; }
+  .brand-tag { font-size: 6px !important; margin-top: 4px !important; }
+  .hero { min-height: 650px !important; height: min(760px, calc(100svh - 68px)) !important; }
+  .hero-slide { display: grid !important; grid-template-columns: minmax(0,1fr) !important; grid-template-rows: 43% 57% !important; }
+  .hero-photo { grid-column: 1 !important; grid-row: 1 !important; position: relative !important; inset: auto !important; min-width: 0; min-height: 0; width: 100%; height: 100%; opacity: 1 !important; background: linear-gradient(145deg,#f8fcff,#dceef7) !important; }
+  .hero-photo:after { background: linear-gradient(0deg,#dceef7 0%,transparent 35%) !important; }
+  .hero-photo img { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center !important; padding: 12px 18px 4px; }
+  .hero-copy { grid-column: 1 !important; grid-row: 2 !important; position: relative !important; inset: auto !important; z-index: 3 !important; width: 100%; min-width: 0; padding: 18px 23px 88px !important; justify-content: flex-start !important; background: linear-gradient(180deg,#dceef7 0%,#f8fcff 42%,#fff 100%) !important; }
+  .hero-copy:before,.hero-copy:after { display: none !important; }
+  .hero-kicker { font-size: 9px !important; letter-spacing: .17em !important; }
+  .hero h1 { max-width: 100% !important; font-size: clamp(29px,8vw,38px) !important; line-height: 1.08 !important; margin: 10px 0 9px !important; overflow-wrap: anywhere; }
+  .hero-copy p { max-width: 100% !important; font-size: 12px !important; line-height: 1.65 !important; margin: 0 !important; }
+  .hero-buttons { display: flex !important; flex-wrap: wrap; gap: 8px !important; margin-top: 16px !important; }
+  .hero-buttons .btn { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 11px 13px !important; font-size: 9px !important; }
+  .hero-controls { right: 17px !important; bottom: 17px !important; left: 17px; justify-content: flex-end; }
+  .hero-dots { margin-right: auto !important; }
+  .hero-arrow { width: 34px !important; height: 34px !important; }
+  .hero-index { display: none !important; }
+  .hero-progress { z-index: 8; }
+}
+@media (max-width: 380px) {
+  .hero { min-height: 680px !important; height: auto !important; }
+  .hero-slide { grid-template-rows: 39% 61% !important; }
+  .hero-copy { padding-left: 18px !important; padding-right: 18px !important; }
+  .hero h1 { font-size: 29px !important; }
+  .hero-buttons .btn { font-size: 8px !important; padding: 10px !important; }
+}
+
+/* Single floating WhatsApp help action belongs at the bottom-right. */
+.airevo-help-float { left: auto !important; right: 22px !important; bottom: 22px !important; }
+@media(max-width:520px){ .airevo-help-float { right: 13px !important; bottom: 13px !important; left: auto !important; } }

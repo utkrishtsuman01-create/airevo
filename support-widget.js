@@ -78,7 +78,7 @@
   const autoOpen = () => backdrop.classList.add('is-open');
   // Show the contact popup automatically on the homepage only.
   if (document.body?.dataset.page === 'home') {
-    window.addEventListener('pageshow', () => setTimeout(autoOpen, 950), { once: true });
+    window.addEventListener('pageshow', () => setTimeout(autoOpen, 3500), { once: true });
   }
 
   const form = backdrop.querySelector('#airevo-contact-form');

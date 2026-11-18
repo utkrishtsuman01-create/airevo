@@ -76,7 +76,10 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && backdrop.classList.contains('is-open')) close(); });
 
   const autoOpen = () => backdrop.classList.add('is-open');
-  window.addEventListener('pageshow', () => setTimeout(autoOpen, 950), { once: true });
+  // Show the contact popup automatically on the homepage only.
+  if (document.body?.dataset.page === 'home') {
+    window.addEventListener('pageshow', () => setTimeout(autoOpen, 950), { once: true });
+  }
 
   const form = backdrop.querySelector('#airevo-contact-form');
   form.addEventListener('submit', async e => {

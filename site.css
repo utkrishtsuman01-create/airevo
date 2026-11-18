@@ -248,3 +248,53 @@ body{background:#f4faff;color:#080b10}
   .topline-socials{gap:3px!important}
   .topline-socials a{width:23px!important;height:23px!important}
 }
+
+
+/* Tighten only the mobile home hero-to-content transition. */
+@media (max-width: 600px) {
+  .hero {
+    min-height: 540px !important;
+    height: 540px !important;
+  }
+  .hero-slide {
+    grid-template-rows: 41% 59% !important;
+  }
+  .hero-copy {
+    padding: 14px 22px 68px !important;
+  }
+  .hero h1 {
+    margin-top: 8px !important;
+    margin-bottom: 7px !important;
+  }
+  .hero-buttons {
+    margin-top: 12px !important;
+  }
+  .hero-controls {
+    bottom: 12px !important;
+  }
+  .section {
+    padding-top: 38px !important;
+  }
+}
+@media (max-width: 380px) {
+  .hero {
+    min-height: 565px !important;
+    height: 565px !important;
+  }
+  .hero-slide {
+    grid-template-rows: 39% 61% !important;
+  }
+  .hero-copy {
+    padding: 12px 18px 64px !important;
+  }
+  .hero h1 {
+    font-size: 28px !important;
+  }
+  .hero-copy p {
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+  }
+  .hero-buttons {
+    margin-top: 10px !important;
+  }
+}

@@ -298,3 +298,22 @@ body{background:#f4faff;color:#080b10}
     margin-top: 10px !important;
   }
 }
+
+
+/* Hero imagery: make the appliance the dominant visual, especially on phones. */
+.hero-photo { background:linear-gradient(135deg,#f8fcff,#dceef7) !important; }
+.hero-photo img { image-rendering:auto; }
+.hero-photo img.hero-image-fallback { object-fit:cover !important; padding:0 !important; transform:none !important; }
+@media (max-width:600px) {
+  .hero { height:600px !important; min-height:600px !important; }
+  .hero-slide { grid-template-rows:58% 42% !important; }
+  .hero-photo { grid-row:1 !important; min-height:0 !important; }
+  .hero-photo img { object-fit:contain !important; object-position:center center !important; padding:0 4px !important; transform:scale(1.08); }
+  .hero-copy { grid-row:2 !important; padding:12px 20px 62px !important; }
+  .hero-photo:after { background:linear-gradient(0deg,#dceef7 0%,transparent 24%) !important; }
+}
+@media (max-width:380px) {
+  .hero { height:590px !important; min-height:590px !important; }
+  .hero-slide { grid-template-rows:56% 44% !important; }
+  .hero-photo img { transform:scale(1.06); }
+}

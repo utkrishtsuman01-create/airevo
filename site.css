@@ -207,3 +207,17 @@ body{background:#f4faff;color:#080b10}
 /* Single floating WhatsApp help action belongs at the bottom-right. */
 .airevo-help-float { left: auto !important; right: 22px !important; bottom: 22px !important; }
 @media(max-width:520px){ .airevo-help-float { right: 13px !important; bottom: 13px !important; left: auto !important; } }
+
+/* Keep the basket reachable in the compact mobile header without crowding the logo. */
+@media (max-width: 850px) {
+  .nav-actions { display: flex !important; flex: 0 0 auto; margin-left: 0 !important; }
+  .nav-socials, .nav-actions .login-link { display: none !important; }
+  .nav-cta { display: inline-flex !important; align-items: center; justify-content: center; min-width: 42px; width: 42px; height: 42px; padding: 0 !important; border-radius: 12px; font-size: 0 !important; }
+  .nav-cta span { display: inline-flex; align-items: center; justify-content: center; font-size: 12px !important; }
+  .menu-toggle { margin-left: 0 !important; }
+}
+@media (max-width: 600px) {
+  .nav-wrap { gap: 9px !important; }
+  .nav-cta { min-width: 38px; width: 38px; height: 38px; }
+  .menu-toggle { flex-basis: 38px; width: 38px; height: 38px; }
+}

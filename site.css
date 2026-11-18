@@ -145,3 +145,6 @@ body{background:#f4faff;color:#080b10}
  .nav-cta span{font-size:11px}
  .brand{min-width:0;gap:6px}.brand-logo{width:42px;height:42px}.brand-name{font-size:27px}.brand-name .brand-a{font-size:33px}
 }
+
+.nav-whatsapp svg{width:16px;height:16px;display:block;flex:none}
+@media(max-width:520px){.nav-whatsapp svg{width:18px;height:18px}}

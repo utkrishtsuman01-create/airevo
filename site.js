@@ -13,13 +13,21 @@ const IMG={
  dishwasher:'https://cdn.rona.ca/images/30855105_L.jpg',
  air:'https://cosori.co.uk/cdn/shop/files/cp158black.jpg?v=1738999039&width=800'
 };
+const HERO={
+ chimney:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2400&q=92',
+ microwave:'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=2400&q=92',
+ hob:'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2400&q=92',
+ oven:'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=2400&q=92',
+ dishwasher:'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=2400&q=92',
+ air:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2400&q=92'
+};
 const slides=[
- ['A fresher way to cook','Make air the quietest luxury.','A beautiful kitchen starts with a space that feels as good as it looks. Discover chimney designs made for modern cooking.',IMG.chimney,'Faber wall-mounted kitchen chimney','Explore Chimneys','/catalogue.html?category=chimneys','Book a Consultation','/contact.html?intent=chimney-consultation'],
- ['Everyday, made easier','Good things happen in minutes.','From compact solo models to grill, convection and built-in formats, find the microwave that fits your cooking routine.','https://ifbdm.ifbappliances.com/adobe/assets/urn%3Aaaid%3Aaem%3Af62cd85e-9b2d-4e74-8bf8-9eac61fa8886/as/8903287005602-20pm-mec2b.webp?quality=60','IFB 25 litre convection microwave oven','Shop Microwaves','/catalogue.html?category=microwave-ovens','Compare Capacities','/category.html?slug=microwave-ovens'],
- ['Designed around the flame','Bring precision to every flame.','Explore gas hobs, glass cooktops and induction surfaces that bring a refined finish to your kitchen.',IMG.hob,'IFB three burner black glass hob','Explore Hobs','/catalogue.html?category=hobs-cooktops','Choose Your Cooktop','/contact.html?intent=cooktop-advice'],
- ['A little more room to create','More room for your best recipes.','Built-in oven concepts for baking, roasting and the little experiments that become family favourites.',IMG.oven,'Built-in black glass electric oven','Discover Ovens','/catalogue.html?category=built-in-ovens','Plan My Kitchen','/contact.html?intent=oven-consultation'],
- ['Let the kitchen reset itself','Give clean-up a smarter ending.','Explore dishwasher formats designed to bring a little more time back to your day.',IMG.dishwasher,'Bosch integrated dishwasher','Explore Dishwashers','/catalogue.html?category=dishwashers','Ask About Installation','/contact.html?intent=dishwasher-installation'],
- ['Small details. Big difference.','Everyday cooking, reimagined.','Discover countertop companions such as digital air fryers and small appliances built around the way you live.',IMG.air,'COSORI digital air fryer','Shop Small Appliances','/catalogue.html?category=small-appliances','Explore All Collections','/collection.html']
+ ['A fresher way to cook','Make air the quietest luxury.','A beautiful kitchen starts with a space that feels as good as it looks. Discover chimney designs made for modern cooking.',HERO.chimney,'Modern premium kitchen interior','Explore Chimneys','/catalogue.html?category=chimneys','Book a Consultation','/contact.html?intent=chimney-consultation'],
+ ['Everyday, made easier','Good things happen in minutes.','From compact solo models to grill, convection and built-in formats, find the microwave that fits your cooking routine.',HERO.microwave,'Modern kitchen appliance setting','Shop Microwaves','/catalogue.html?category=microwave-ovens','Compare Capacities','/category.html?slug=microwave-ovens'],
+ ['Designed around the flame','Bring precision to every flame.','Explore gas hobs, glass cooktops and induction surfaces that bring a refined finish to your kitchen.',HERO.hob,'Contemporary kitchen with premium cooktop','Explore Hobs','/catalogue.html?category=hobs-cooktops','Choose Your Cooktop','/contact.html?intent=cooktop-advice'],
+ ['A little more room to create','More room for your best recipes.','Built-in oven concepts for baking, roasting and the little experiments that become family favourites.',HERO.oven,'Bright modern kitchen interior','Discover Ovens','/catalogue.html?category=built-in-ovens','Plan My Kitchen','/contact.html?intent=oven-consultation'],
+ ['Let the kitchen reset itself','Give clean-up a smarter ending.','Explore dishwasher formats designed to bring a little more time back to your day.',HERO.dishwasher,'Modern kitchen with integrated appliances','Explore Dishwashers','/catalogue.html?category=dishwashers','Ask About Installation','/contact.html?intent=dishwasher-installation'],
+ ['Small details. Big difference.','Everyday cooking, reimagined.','Discover countertop companions such as digital air fryers and small appliances built around the way you live.',HERO.air,'Elegant contemporary kitchen interior','Shop Small Appliances','/catalogue.html?category=small-appliances','Explore All Collections','/collection.html']
 ];
 function toast(t){let e=$('#site-toast');if(!e){e=document.createElement('div');e.id='site-toast';e.className='toast';document.body.appendChild(e)}e.textContent=t;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),2600)}
 async function load(){
@@ -61,8 +69,8 @@ function header(){
  '<div class="nav-item"><a class="nav-link" href="/category.html">Categories <span class="chevron">⌄</span></a><div class="mega-menu"><div class="mega-title">Explore appliances</div>'+cats+'<a href="/category.html">All categories ↗</a></div></div>'+
  '<div class="nav-item"><a class="nav-link" href="/collection.html">Collection <span class="chevron">⌄</span></a><div class="mega-menu"><div class="mega-title">Curated for your kitchen</div><a href="/collection.html?type=trending">Trending now</a><a href="/collection.html?type=popular">Popular choices</a><a href="/collection.html?type=new">New arrivals</a><a href="/catalogue.html">All products ↗</a></div></div>'+
  '<div class="nav-item"><a class="nav-link" href="/approach.html">Our Approach <span class="chevron">⌄</span></a><div class="mega-menu"><div class="mega-title">Discover Airevo</div><a href="/approach.html#why-airevo">Why choose Airevo</a><a href="/approach.html#how-we-help">How we help</a><a href="/blog.html">Ideas & buying guides</a><a href="/contact.html?intent=consultation">Book a consultation ↗</a></div></div>'+
- '<div class="nav-item"><a class="nav-link" href="/reviews.html">Reviews</a></div><div class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></div></nav>'+
- '<div class="nav-actions"><div class="nav-socials"><a href="https://www.instagram.com/" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></svg></a><a href="https://www.facebook.com/" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H7.6V13h2.7v8z"/></svg></a><a href="https://wa.me/919836147993" aria-label="WhatsApp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 3.5A11.9 11.9 0 0 0 1.8 17.8L.2 23.7l6-1.6A11.9 11.9 0 0 0 20.5 3.5ZM12 21a9 9 0 0 1-4.6-1.3l-.3-.2-3.5.9.9-3.4-.2-.3A9 9 0 1 1 12 21Zm5-6.7c-.3-.2-1.7-.9-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.2-.4-2.3-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6l-.9-2c-.2-.5-.5-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1-1.1 2.4s1.1 2.8 1.2 3c.2.2 2.1 3.2 5.1 4.4.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 1.9-1.3.2-.6.2-1.1.2-1.3 0-.1-.2-.2-.5-.4Z"/></svg></a></div><a class="login-link" href="/login.html">Sign in</a><button class="nav-cta" id="cart-open">Basket <span id="cart-count">'+qty()+'</span></button></div></div></header>';
+ '<div class="nav-item"><a class="nav-link" href="/reviews.html">Reviews</a></div><div class="nav-item"><button class="nav-link contact-trigger" id="contact-open" type="button">Contact us</button></div></nav>'+
+ '<div class="nav-actions"><a class="nav-whatsapp" href="https://wa.me/919836147993" aria-label="Chat with Airevo on WhatsApp" target="_blank" rel="noopener"><span aria-hidden="true">◉</span> WhatsApp</a><div class="nav-socials"><a href="https://www.instagram.com/" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></svg></a><a href="https://www.facebook.com/" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H7.6V13h2.7v8z"/></svg></a><a href="https://wa.me/919836147993" aria-label="WhatsApp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 3.5A11.9 11.9 0 0 0 1.8 17.8L.2 23.7l6-1.6A11.9 11.9 0 0 0 20.5 3.5ZM12 21a9 9 0 0 1-4.6-1.3l-.3-.2-3.5.9.9-3.4-.2-.3A9 9 0 1 1 12 21Zm5-6.7c-.3-.2-1.7-.9-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.2-.4-2.3-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6l-.9-2c-.2-.5-.5-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1-1.1 2.4s1.1 2.8 1.2 3c.2.2 2.1 3.2 5.1 4.4.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 1.9-1.3.2-.6.2-1.1.2-1.3 0-.1-.2-.2-.5-.4Z"/></svg></a></div><a class="login-link" href="/login.html">Sign in</a><button class="nav-cta" id="cart-open">Basket <span id="cart-count">'+qty()+'</span></button></div></div></header>';
 }
 function footer(){
  return '<footer class="footer"><div class="container"><div class="footer-grid">'+
@@ -176,8 +184,11 @@ function adminLoginPage(){return heroHead('Private administration','Airevo manag
 function shell(content){
  app.innerHTML=header()+'<main>'+content+'</main>'+footer()+
  '<div class="drawer" id="cart-drawer"><div class="drawer-head"><h3>Your basket <span id="drawer-count">('+qty()+')</span></h3><button class="drawer-close" id="cart-close">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-foot" id="drawer-foot"><div class="drawer-total"><span>Subtotal</span><b id="drawer-total">'+money(total())+'</b></div><p class="demo-note">Shipping and final availability are confirmed at checkout.</p><button class="btn" id="checkout-start">Proceed to checkout ↗</button></div></div>'+
- '<div class="modal-backdrop" id="checkout-modal"><div class="modal"><div class="modal-head"><button class="modal-close" data-modal-close="checkout-modal">×</button><span class="eyebrow">Almost yours</span><h2>Delivery details</h2><p>Orders require a verified customer account.</p></div><div class="modal-body"><div id="checkout-status" class="status-message"></div><form id="checkout-form"><div class="form-grid"><div class="field"><label>Full name</label><input id="checkout-name" required></div><div class="field"><label>Mobile number</label><input id="checkout-phone" type="tel" required></div><div class="field full"><label>Delivery address</label><textarea id="checkout-address" required></textarea></div><div class="field"><label>City</label><input id="checkout-city" required></div><div class="field"><label>State</label><input id="checkout-state" required></div><div class="field"><label>PIN code</label><input id="checkout-pin" required></div></div><p class="demo-note">Demo store orders are saved in Airevo and reduce demo stock. No payment gateway is connected yet.</p><button class="btn">Place demo order ↗</button></form></div></div></div>';
+ '<div class="modal-backdrop" id="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title"><div class="modal contact-modal"><div class="modal-head"><button class="modal-close" data-modal-close="contact-modal" aria-label="Close contact form">×</button><span class="eyebrow">Talk to Airevo</span><h2 id="contact-modal-title">How can we help?</h2><p>Send us a message and our team will get back to you.</p></div><div class="modal-body"><div id="contact-modal-status" class="status-message"></div><form id="contact-modal-form"><div class="form-grid"><div class="field"><label for="contact-modal-name">Full name</label><input id="contact-modal-name" required maxlength="120"></div><div class="field"><label for="contact-modal-email">Email</label><input id="contact-modal-email" type="email" required maxlength="200"></div><div class="field"><label for="contact-modal-phone">Phone</label><input id="contact-modal-phone" type="tel" maxlength="30"></div><div class="field"><label for="contact-modal-subject">Enquiry type</label><select id="contact-modal-subject"><option>Product enquiry</option><option>Price and availability</option><option>Installation enquiry</option><option>Kitchen consultation</option><option>Other</option></select></div><div class="field full"><label for="contact-modal-message">Your message</label><textarea id="contact-modal-message" required maxlength="4000" rows="4"></textarea></div></div><button class="btn" type="submit">Send enquiry ↗</button></form><p class="contact-modal-direct">Prefer WhatsApp? <a href="https://wa.me/919836147993" target="_blank" rel="noopener">Chat with us directly ↗</a></p></div></div></div><div class="modal-backdrop" id="checkout-modal"><div class="modal"><div class="modal-head"><button class="modal-close" data-modal-close="checkout-modal">×</button><span class="eyebrow">Almost yours</span><h2>Delivery details</h2><p>Orders require a verified customer account.</p></div><div class="modal-body"><div id="checkout-status" class="status-message"></div><form id="checkout-form"><div class="form-grid"><div class="field"><label>Full name</label><input id="checkout-name" required></div><div class="field"><label>Mobile number</label><input id="checkout-phone" type="tel" required></div><div class="field full"><label>Delivery address</label><textarea id="checkout-address" required></textarea></div><div class="field"><label>City</label><input id="checkout-city" required></div><div class="field"><label>State</label><input id="checkout-state" required></div><div class="field"><label>PIN code</label><input id="checkout-pin" required></div></div><p class="demo-note">Demo store orders are saved in Airevo and reduce demo stock. No payment gateway is connected yet.</p><button class="btn">Place demo order ↗</button></form></div></div></div>';
  $('#menu-toggle')?.addEventListener('click',()=>$('#main-nav').classList.toggle('open'));
+ $('#contact-open')?.addEventListener('click',()=>{const modal=$('#contact-modal');modal?.classList.add('open');setTimeout(()=>$('#contact-modal-name')?.focus(),80)});
+ $('.modal-backdrop').forEach(backdrop=>backdrop.addEventListener('click',e=>{if(e.target===backdrop)backdrop.classList.remove('open')}));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.modal-backdrop.open').forEach(m=>m.classList.remove('open'))});
  $$('.nav-item').forEach(it=>{const l=$(':scope > .nav-link',it);if($(':scope > .mega-menu',it))l.addEventListener('click',e=>{if(innerWidth<=850){e.preventDefault();it.classList.toggle('open')}})});
  $('#cart-open')?.addEventListener('click',()=>$('#cart-drawer').classList.add('open'));$('#cart-close')?.addEventListener('click',()=>$('#cart-drawer').classList.remove('open'));
  $('#drawer-items')?.addEventListener('click',e=>{
@@ -239,7 +250,24 @@ async function bindReviews(){
 }
 function productImages(){ $$('[data-product-image]').forEach(b=>b.onclick=()=>{$('#product-main-image').src=b.dataset.productImage;$$('[data-product-image]').forEach(x=>x.classList.toggle('active',x===b))})}
 function bindContact(){
- const s=db(),f=$('#contact-form');if(!s||!f)return;f.onsubmit=async e=>{e.preventDefault();const status=$('#contact-status');status.textContent='Sending…';status.className='status-message show';const {error}=await s.from('contact_inquiries').insert({name:$('#contact-name').value.trim(),email:$('#contact-email').value.trim(),phone:$('#contact-phone').value.trim(),subject:$('#contact-subject').value,message:$('#contact-message').value.trim()});status.textContent=error?'Unable to send enquiry: '+error.message:'Thank you. Your enquiry has been saved.';status.className='status-message show'+(error?' error':'');if(!error)f.reset()}
+ const s=db();
+ const bind=(formId,prefix,statusId)=>{
+  const f=$('#'+formId);if(!f)return;
+  f.addEventListener('submit',async e=>{
+   e.preventDefault();const status=$('#'+statusId),submit=f.querySelector('button[type="submit"],button:not([type])');
+   if(!s){status.textContent='The enquiry service is temporarily unavailable. Please contact us on WhatsApp.';status.className='status-message show error';return}
+   if(submit){submit.disabled=true;submit.textContent='Sending…'}
+   status.textContent='Sending…';status.className='status-message show';
+   const val=id=>$('#'+prefix+id)?.value?.trim()||'';
+   const {error}=await s.from('contact_inquiries').insert({name:val('name'),email:val('email'),phone:val('phone'),subject:val('subject')||'General enquiry',message:val('message')});
+   status.textContent=error?'Unable to send enquiry: '+error.message:'Thank you. Your enquiry has been saved.';
+   status.className='status-message show'+(error?' error':'');
+   if(!error){f.reset();if(formId==='contact-modal-form')setTimeout(()=>$('#contact-modal')?.classList.remove('open'),1200)}
+   if(submit){submit.disabled=false;submit.textContent=formId==='contact-modal-form'?'Send enquiry ↗':'Send enquiry ↗'}
+  });
+ };
+ bind('contact-form','contact-','contact-status');
+ bind('contact-modal-form','contact-modal-','contact-modal-status');
 }
 async function reviewsPage(){
  let data=[];const client=db();
@@ -310,11 +338,8 @@ function productImages(){
  });
 }
 async function render(){
- let content='',loadTask=null,loadTimedOut=false;
- try{
-  loadTask=load();
-  if(loadTask)await Promise.race([loadTask,new Promise(resolve=>setTimeout(()=>{loadTimedOut=true;resolve()},6000))]);
- }catch(error){console.error('Airevo data loading failed; rendering the storefront without live catalogue data.',error)}
+ const loadTask=load();
+ let content='';
  try{
  if(page==='home')content=await home();
  else if(page==='catalogue')content=catalogue();
@@ -335,9 +360,7 @@ async function render(){
  if(page==='admin')window.AirevoAuth?.adminBootForm();
  if(page==='account')$('#signout-customer')?.addEventListener('click',async()=>{await db()?.auth.signOut();location.href='/'});
  }catch(e){console.error(e);shell(heroHead('Airevo','Something went wrong.','Please refresh the page or contact the Airevo team.')+'<section class="section"><div class="container">'+esc(e.message||e)+'</div></section>')}
- if(loadTimedOut&&loadTask){
-  loadTask.then(()=>{if(!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
- }
+ if(loadTask&&!S.dataLoaded)loadTask.then(()=>{if(S.dataLoaded&&!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
 }
 window.AirevoSite={render,toast,load};
 render();

@@ -221,3 +221,30 @@ body{background:#f4faff;color:#080b10}
   .nav-cta { min-width: 38px; width: 38px; height: 38px; }
   .menu-toggle { flex-basis: 38px; width: 38px; height: 38px; }
 }
+
+
+/* Mobile upper header refinement: retain every contact and social shortcut. */
+.topline-right{display:flex;align-items:center;justify-content:flex-end;gap:18px}
+.topline-socials{display:none;align-items:center;gap:7px}
+.topline-socials a{width:27px;height:27px;display:grid;place-items:center;border:1px solid #cbdfe9;border-radius:50%;background:#fff;color:#31566e}
+.topline-socials svg{width:14px;height:14px;display:block}
+@media(max-width:600px){
+  .topline{display:block!important;background:linear-gradient(90deg,#e8f6fc,#f7fbfd)!important;border-bottom:1px solid #d5e9f2!important}
+  .topline-inner{width:calc(100% - 24px)!important;min-height:43px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important;padding:5px 0!important}
+  .contact-mini{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:clamp(8px,3vw,16px)!important;min-width:0!important;flex:1 1 auto!important}
+  .contact-mini a{display:inline-flex!important;align-items:center!important;gap:4px!important;font-size:clamp(8px,2.35vw,10px)!important;letter-spacing:-.025em!important;color:#29495e!important;white-space:nowrap!important}
+  .topline-right{display:flex!important;align-items:center!important;gap:0!important;flex:0 0 auto!important}
+  .topline-note{display:none!important}
+  .topline-socials{display:flex!important;gap:5px!important}
+  .topline-socials a{width:25px!important;height:25px!important}
+  .topline-socials svg{width:13px!important;height:13px!important}
+  .site-header{position:sticky!important;top:0!important}
+  .nav-wrap{min-height:68px!important}
+}
+@media(max-width:370px){
+  .topline-inner{width:calc(100% - 18px)!important;gap:4px!important}
+  .contact-mini{gap:7px!important}
+  .contact-mini a{font-size:7.5px!important;gap:3px!important}
+  .topline-socials{gap:3px!important}
+  .topline-socials a{width:23px!important;height:23px!important}
+}

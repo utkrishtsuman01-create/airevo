@@ -5,7 +5,7 @@
   const whatsappUrl = 'https://wa.me/919836147993?text=' + encodeURIComponent('Hi Airevo, I need help.');
   const style = document.createElement('style');
   style.textContent = `
-    .airevo-help-float{position:fixed;left:22px;bottom:22px;z-index:180;display:flex;align-items:center;gap:10px;padding:11px 17px 11px 11px;border:1px solid #d8e8ef;border-radius:999px;background:#fff;color:#17394d;box-shadow:0 10px 35px #0b24352b;font:800 13px/1.2 "DM Sans",sans-serif;cursor:pointer;transition:transform .2s,box-shadow .2s}
+    .airevo-help-float{position:fixed;left:auto;right:22px;bottom:22px;z-index:180;display:flex;align-items:center;gap:10px;padding:11px 17px 11px 11px;border:1px solid #d8e8ef;border-radius:999px;background:#fff;color:#17394d;box-shadow:0 10px 35px #0b24352b;font:800 13px/1.2 "DM Sans",sans-serif;cursor:pointer;transition:transform .2s,box-shadow .2s}
     .airevo-help-float:hover{transform:translateY(-3px);box-shadow:0 15px 38px #0b24353b}
     .airevo-help-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:50%;background:#20c765;color:#fff;flex:none}
     .airevo-help-icon svg{width:22px;height:22px;display:block}
@@ -30,7 +30,7 @@
     .airevo-contact-status{display:none;margin-top:12px;padding:11px 13px;border-radius:9px;background:#edf7fb;color:#31566a;font-size:12px}
     .airevo-contact-status.show{display:block}
     .airevo-contact-status.error{background:#fff0ef;color:#983d36}
-    @media(max-width:560px){.airevo-help-float{left:13px;bottom:13px;padding:8px 13px 8px 8px;font-size:12px}.airevo-help-icon{width:36px;height:36px}.airevo-contact-head{padding:23px 21px 19px}.airevo-contact-body{padding:20px 21px 24px}.airevo-contact-grid{grid-template-columns:1fr}.airevo-contact-field.full{grid-column:auto}.airevo-contact-head h2{font-size:23px}}
+    @media(max-width:560px){.airevo-help-float{left:auto;right:13px;bottom:13px;padding:8px 13px 8px 8px;font-size:12px}.airevo-help-icon{width:36px;height:36px}.airevo-contact-head{padding:23px 21px 19px}.airevo-contact-body{padding:20px 21px 24px}.airevo-contact-grid{grid-template-columns:1fr}.airevo-contact-field.full{grid-column:auto}.airevo-contact-head h2{font-size:23px}}
   `;
   document.head.appendChild(style);
 

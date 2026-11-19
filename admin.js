@@ -310,10 +310,32 @@ async function accessRequests(s,host){
  $$('[data-admin-reject]').forEach(b=>b.onclick=async()=>{const {error}=await s.from('admin_access_requests').update({status:'rejected',reviewed_at:new Date().toISOString()}).eq('user_id',b.dataset.adminReject);notify(error?.message||'Admin request rejected');await accessRequests(s,host)});
 }
 async function categoriesAndAdmin(){}
-async function render(){
- const ok=await verify().catch(e=>{const el=$('#admin-auth-status');if(el){el.textContent=e.message;el.className='status-message show error'}return false});
- if(!ok){if(!$('#admin-auth-form'))location.reload();return}
- mountDashboard();
+function mountDemoDashboard(){
+ const main=$('#app main');if(!main)return;
+ const old=$('.auth-shell',main);if(old)old.remove();
+ let host=$('.admin-shell',main);
+ if(!host){
+  main.insertAdjacentHTML('beforeend','<section class="section"><div class="container admin-shell"><aside class="admin-nav" id="admin-nav"><div class="admin-nav-label">DEMO WORKSPACE</div><button class="active" data-demo-tab="overview">Overview</button><button data-demo-tab="products">Products & variants</button><button data-demo-tab="categories">Categories</button><button data-demo-tab="collections">Collections</button><button data-demo-tab="orders">Orders & billing</button><button data-demo-tab="reviews">Reviews</button><button data-demo-tab="blogs">Blog posts</button><button data-demo-tab="inquiries">Enquiries</button></aside><div class="admin-main" id="admin-main"></div></div></section>');
+ }
+ const hostMain=$('#admin-main');
+ const views={
+ overview:'<div class="admin-stats"><div class="admin-stat"><small>Products</small><b>24</b></div><div class="admin-stat"><small>Orders</small><b>18</b></div><div class="admin-stat"><small>Pending reviews</small><b>3</b></div><div class="admin-stat"><small>New enquiries</small><b>5</b></div><div class="admin-stat"><small>Blog posts</small><b>6</b></div><div class="admin-stat"><small>Low-stock items</small><b>2</b></div></div><div class="admin-panel"><h3>Store overview</h3><p>This is a preview of the Airevo store administration workspace. The figures and records shown here are sample data only.</p><div class="admin-shortcuts"><button data-demo-tab="products">Preview products</button><button data-demo-tab="orders">Preview orders</button><button data-demo-tab="reviews">Preview reviews</button></div></div><div class="admin-panel"><h3>Low-stock watch</h3><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Stock left</th><th>Alert at</th><th>Status</th></tr></thead><tbody><tr><td>Air fryer 5L</td><td>2</td><td>5</td><td><span class="stock-low">Low stock</span></td></tr><tr><td>Electric kettle</td><td>3</td><td>5</td><td><span class="stock-low">Low stock</span></td></tr></tbody></table></div></div>',
+ products:'<div class="admin-panel"><h3>Products & variants</h3><p>Sample catalogue preview · editing is disabled in demo mode.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead><tbody><tr><td>Digital Air Fryer 5L</td><td>Kitchen</td><td>₹6,499</td><td>2</td><td>Active</td></tr><tr><td>Electric Kettle 1.8L</td><td>Kitchen</td><td>₹1,299</td><td>3</td><td>Active</td></tr><tr><td>Steam Iron Pro</td><td>Home care</td><td>₹2,199</td><td>14</td><td>Active</td></tr></tbody></table></div></div>',
+ categories:'<div class="admin-panel"><h3>Categories</h3><p>Kitchen appliances · Home care · Personal care · Smart living</p></div>',
+ collections:'<div class="admin-panel"><h3>Collections</h3><p>Best sellers · New arrivals · Everyday essentials</p></div>',
+ orders:'<div class="admin-panel"><h3>Orders & billing</h3><p>Sample order records only. No customer information or live orders are loaded.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody><tr><td>ARV-DEMO-1024</td><td>18 Nov 2026</td><td>2</td><td>₹7,798</td><td>Processing</td></tr><tr><td>ARV-DEMO-1023</td><td>17 Nov 2026</td><td>1</td><td>₹1,299</td><td>Delivered</td></tr></tbody></table></div></div>',
+ reviews:'<div class="admin-panel"><h3>Reviews</h3><p>Sample moderation queue · no real customer reviews are displayed.</p><p>★★★★★ &nbsp; “Great product quality and quick delivery.”</p><p>★★★★☆ &nbsp; “Works exactly as expected.”</p></div>',
+ blogs:'<div class="admin-panel"><h3>Blog posts</h3><p>Choosing the right air fryer · Everyday appliance care · A smarter kitchen</p></div>',
+ inquiries:'<div class="admin-panel"><h3>Enquiries</h3><p>Sample enquiry inbox · real customer messages are not accessible in demo mode.</p><p>Product availability question — Sample record</p><p>Bulk purchase enquiry — Sample record</p></div>'
+ };
+ function showTab(tab){
+  $('#admin-nav [data-demo-tab]').forEach(b=>b.classList.toggle('active',b.dataset.demoTab===tab));
+  hostMain.innerHTML='<div class="demo-note"><strong>DEMO MODE · READ ONLY</strong> — Sample data only. Authentication and live admin access are preserved for later activation.</div>'+(views[tab]||views.overview);
+ }
+ $('#admin-nav').onclick=e=>{const b=e.target.closest('[data-demo-tab]');if(b)showTab(b.dataset.demoTab)};
+ hostMain.onclick=e=>{const b=e.target.closest('[data-demo-tab]');if(b)showTab(b.dataset.demoTab)};
+ showTab('overview');
 }
+function render(){mountDemoDashboard()}
 window.AirevoAdmin={render,verify};
 })();

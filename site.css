@@ -323,7 +323,7 @@ body{background:#f4faff;color:#080b10}
 .review-marquee{display:grid;gap:14px;overflow:hidden;padding:5px 0 12px}
 .review-marquee-row{overflow:hidden;position:relative;mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
 .review-marquee-track{display:flex;align-items:stretch;gap:14px;width:max-content;animation:airevo-review-left 62s linear infinite}
-.review-marquee-row.reverse .review-marquee-track{animation-direction:reverse;animation-duration:70s}
+.review-marquee-row.reverse .review-marquee-track{animation-duration:70s;animation-delay:-16s}
 .review-marquee-row:hover .review-marquee-track{animation-play-state:paused}
 .testimonial.review-brick{flex:0 0 clamp(245px,27vw,345px);width:clamp(245px,27vw,345px);min-height:190px;padding:19px 21px;border-radius:14px 4px 14px 4px;display:flex;flex-direction:column;justify-content:flex-start}
 .review-marquee-row:nth-child(2) .testimonial.review-brick:nth-child(even){transform:translateY(6px)}

@@ -397,3 +397,10 @@ body{background:#f4faff;color:#080b10}
 .login-link.account-icon-link svg{width:21px;height:21px;display:block;}
 .login-link.account-icon-link:hover{border-color:var(--blue);color:var(--blue2);background:#f1faff;}
 .login-link.account-icon-link:focus-visible{outline:3px solid #159bd855;outline-offset:3px;}
+
+/* Header shopping cart icon and live quantity badge */
+.cart-icon-button{position:relative;width:46px;height:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;}
+.cart-icon-button>svg{width:22px;height:22px;display:block;}
+.cart-count-badge{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;display:grid;place-items:center;border:2px solid #fff;border-radius:999px;background:#e33e52;color:#fff;font-size:10px;font-weight:900;line-height:1;letter-spacing:0;box-shadow:0 2px 7px #142b3b2b;}
+.cart-count-badge[hidden]{display:none!important;}
+.cart-icon-button:focus-visible{outline:3px solid #159bd855;outline-offset:3px;}

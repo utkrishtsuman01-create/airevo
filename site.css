@@ -355,3 +355,9 @@ body{background:#f4faff;color:#080b10}
  .offline-line button{grid-column:1/-1}
 }
 @media(prefers-reduced-motion:reduce){.review-marquee-track{animation:none;transform:none}}
+
+
+/* Admin settings: make the destructive demo-only reset unmistakable. */
+.settings-danger{border:1px solid #e8c5c5!important;background:linear-gradient(135deg,#fffafa,#fff)!important}
+.settings-danger h3{color:#9c3333}
+.settings-danger button.secondary{border-color:#dca7a7;color:#9c3333;background:#fff5f5}

@@ -432,12 +432,12 @@ function mountDemoDashboard(){
  const setTab=next=>{tab=next;$$('#admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));render()};
  const metrics=()=>{
   const done=state.orders.filter(recognised),gross=done.reduce((n,o)=>n+amount(o),0),returns=done.reduce((n,o)=>n+Number(o.returnAmount||0),0),cogs=done.reduce((n,o)=>n+cost(o),0);
-  return {done,gross,returns,cogs,net:gross-returns,profit:gross-returns-cogs,offline:state.orders.filter(o=>o.source==='Offline').length,pending:state.orders.filter(o=>o.status==='Pending'||o.payment==='Pending').length};
+  return {done,gross,returns,cogs,net:gross-returns,profit:gross-returns-cogs,offline:state.orders.filter(o=>o.source==='Offline').length,pending:state.orders.filter(o=>o.status==='Pending'||o.payment==='Pending').length,returnedCount:done.filter(o=>Number(o.returnAmount||0)>0).length,stockValue:state.products.reduce((n,p)=>n+Number(p.stock||0)*Number(p.costPrice||0),0),customers:new Set(state.orders.map(o=>o.customerName).filter(Boolean)).size};
  };
  const renderOverview=()=>{
   const m=metrics(),low=state.products.filter(p=>p.active&&Number(p.stock)<=Number(p.lowStock));
   host.innerHTML='<div class="admin-stats">'+[
-   ['Total revenue',moneyText(m.net)],['Gross sales',moneyText(m.gross)],['Returns / refunds',moneyText(m.returns)],['Gross profit',moneyText(m.profit)],['Cost of goods sold',moneyText(m.cogs)],['Total orders',state.orders.length],['Offline bills',m.offline],['Pending orders / payments',m.pending],['Products',state.products.length],['Pending reviews',state.reviews.filter(x=>x.status==='Pending').length],['New enquiries',state.inquiries.filter(x=>x.status==='New').length],['Low-stock products',low.length]
+   ['Total revenue',moneyText(m.net)],['Gross sales',moneyText(m.gross)],['Returns / refunds',moneyText(m.returns)],['Gross profit',moneyText(m.profit)],['Cost of goods sold',moneyText(m.cogs)],['Returned orders',m.returnedCount],['Total orders',state.orders.length],['Offline bills',m.offline],['Customers',m.customers],['Stock value at cost',moneyText(m.stockValue)],['Pending orders / payments',m.pending],['Products',state.products.length],['Pending reviews',state.reviews.filter(x=>x.status==='Pending').length],['New enquiries',state.inquiries.filter(x=>x.status==='New').length],['Low-stock products',low.length]
   ].map(x=>'<div class="admin-stat"><small>'+x[0]+'</small><b>'+x[1]+'</b></div>').join('')+'</div>'+
   '<div class="admin-panel"><div class="admin-panel-head"><div><h3>Business performance</h3><p>Demo calculations: gross sales − returns − cost of goods sold = gross profit. Overheads, tax and payment fees are not included.</p></div>'+button('export-sales','Download Excel sheet')+'</div>'+
   actions(button('offline-sale','Create offline bill')+button('go-tab','Manage products','products')+button('go-tab','Orders & returns','orders'))+'</div>'+
@@ -516,14 +516,14 @@ function mountDemoDashboard(){
   host.insertAdjacentHTML('beforeend',editor(p?'Edit product':'Add product',form));$('#demo-editor').dataset.editId=p?.id||'';
   $('#demo-product-form').onsubmit=async e=>{
    e.preventDefault();const f=e.target;try{
-    const urls=f.elements['product-image-urls'].value.split('\n').map(x=>x.trim()).filter(Boolean);
-    const files=Array.from($('#product-image-files').files||[]);if(urls.length+files.length>5)throw new Error('A product can have a maximum of five images.');
+    const urls=f.elements['product-image-urls'].value.split('\n').map(x=>x.trim()).filter(Boolean),existingData=(p?.imageUrls||[]).filter(x=>String(x).startsWith('data:'));
+    const files=Array.from($('#product-image-files').files||[]);if(urls.length+existingData.length+files.length>5)throw new Error('A product can have a maximum of five images.');
     const fileUrls=[];for(const file of files)fileUrls.push(await mediaImage(file));
     const videoUrl=f.elements['product-video-url'].value.trim();const vf=$('#product-video-file').files[0];
     if(videoUrl&&vf)throw new Error('Use one video URL or one uploaded video, not both.');
-    const video=vf?await mediaVideo(vf):videoUrl;
+    const video=vf?await mediaVideo(vf):(videoUrl||p?.videoUrl||'');
     const edit=$('#demo-editor').dataset.editId||'',oldProduct=productById(edit);
-    const payload={id:edit||id('prd'),name:f.elements['product-name'].value.trim(),sku:f.elements['product-sku'].value.trim(),categoryId:f.elements['product-category'].value,mrp:Number(f.elements['product-mrp'].value),price:Number(f.elements['product-price'].value),costPrice:Number(f.elements['product-cost'].value),stock:Number(f.elements['product-stock'].value),lowStock:Number(f.elements['product-lowstock'].value),description:f.elements['product-description'].value.trim(),active:f.elements['product-active'].value==='Active',imageUrls:[...urls,...fileUrls],videoUrl:video,variants:oldProduct?.variants||[]};
+    const payload={id:edit||id('prd'),name:f.elements['product-name'].value.trim(),sku:f.elements['product-sku'].value.trim(),categoryId:f.elements['product-category'].value,mrp:Number(f.elements['product-mrp'].value),price:Number(f.elements['product-price'].value),costPrice:Number(f.elements['product-cost'].value),stock:Number(f.elements['product-stock'].value),lowStock:Number(f.elements['product-lowstock'].value),description:f.elements['product-description'].value.trim(),active:f.elements['product-active'].value==='Active',imageUrls:[...urls,...existingData,...fileUrls],videoUrl:video,variants:oldProduct?.variants||[]};
     if(!payload.name||!payload.sku)throw new Error('Product name and SKU are required.');
     if(edit)state.products=state.products.map(x=>x.id===edit?payload:x);else state.products.unshift(payload);
     save(edit?'Product updated.':'Product created.');render();
@@ -546,10 +546,10 @@ function mountDemoDashboard(){
   host.insertAdjacentHTML('beforeend',editor(b?'Edit blog post':'New blog post',form));$('#demo-editor').dataset.editId=b?.id||'';
   $('#demo-blog-form').onsubmit=async e=>{
    e.preventDefault();const f=e.target;try{
-    const urls=f.elements['blog-image-urls'].value.split('\n').map(x=>x.trim()).filter(Boolean),files=Array.from($('#blog-image-files').files||[]);
-    if(urls.length+files.length>5)throw new Error('A blog post can have a maximum of five images.');
+    const urls=f.elements['blog-image-urls'].value.split('\n').map(x=>x.trim()).filter(Boolean),existingData=(b?.images||[]).filter(x=>String(x).startsWith('data:')),files=Array.from($('#blog-image-files').files||[]);
+    if(urls.length+existingData.length+files.length>5)throw new Error('A blog post can have a maximum of five images.');
     const uploaded=[];for(const file of files)uploaded.push(await mediaImage(file));
-    const edit=$('#demo-editor').dataset.editId||'',payload={id:edit||id('blog'),title:f.elements['blog-title'].value.trim(),slug:f.elements['blog-slug'].value.trim(),excerpt:f.elements['blog-excerpt'].value.trim(),body:f.elements['blog-body'].value.trim(),images:[...urls,...uploaded],status:f.elements['blog-status'].value};
+    const edit=$('#demo-editor').dataset.editId||'',payload={id:edit||id('blog'),title:f.elements['blog-title'].value.trim(),slug:f.elements['blog-slug'].value.trim(),excerpt:f.elements['blog-excerpt'].value.trim(),body:f.elements['blog-body'].value.trim(),images:[...urls,...existingData,...uploaded],status:f.elements['blog-status'].value};
     if(!payload.title||!payload.slug)throw new Error('Post title and URL slug are required.');
     if(edit)state.blogs=state.blogs.map(x=>x.id===edit?payload:x);else state.blogs.unshift(payload);
     save(edit?'Blog post updated.':'Blog post created.');render();
@@ -598,6 +598,7 @@ function mountDemoDashboard(){
   if(action==='editor-close'){$('#demo-editor')?.remove();return}
   if(action==='export-sales'){downloadExcel();return}
   if(action==='print-bill'){const o=state.orders.find(x=>x.id===value);if(o)printBill(o);return}
+  if(action==='return-order'){const o=state.orders.find(x=>x.id===value);if(o)showReturnForm(o);return}
   if(action==='offline-sale'){showOfflineForm();return}
   if(action==='offline-add-line'){addOfflineLine();return}
   if(action==='offline-remove-line'){b.closest('.offline-line')?.remove();updateOfflineTotal();return}

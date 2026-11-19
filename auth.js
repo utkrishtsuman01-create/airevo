@@ -117,8 +117,27 @@ function adminBootForm(){
  });
  $('#admin-forgot-password')?.addEventListener('click',async e=>{
   e.preventDefault();const email=$('#admin-email').value.trim();if(!email){show(status,'Enter your admin email address first.');return}
-  const {error}=await s.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/admin?type=recovery'});
-  show(status,error?'Unable to send reset instructions: '+error.message:'Password reset instructions have been sent if this email belongs to an account.',!!error);
+  if(email.toLowerCase()!=='info@airevo.com'){show(status,'Password recovery is available only for the designated Airevo owner account.',true);return}
+  const {error}=await s.auth.resetPasswordForEmail(email);
+  if(error){show(status,'Unable to request a recovery code: '+error.message,true);return}
+  form.hidden=true;
+  let recovery=$('#admin-otp-recovery');
+  if(!recovery){
+   recovery=document.createElement('form');recovery.id='admin-otp-recovery';recovery.className='auth-form';
+   recovery.innerHTML='<div class="field"><label>Email verification code</label><input id="admin-recovery-token" inputmode="numeric" autocomplete="one-time-code" required></div><div class="field"><label>New password</label><input id="admin-recovery-password" type="password" minlength="8" autocomplete="new-password" required></div><div class="field"><label>Confirm new password</label><input id="admin-recovery-confirm" type="password" minlength="8" autocomplete="new-password" required></div><button class="btn">Verify code and update password</button><button type="button" class="btn dark" id="admin-recovery-back">Back to sign in</button>';
+   form.parentNode.insertBefore(recovery,form.nextSibling);
+   $('#admin-recovery-back').addEventListener('click',()=>{recovery.hidden=true;form.hidden=false;show(status,'')});
+   recovery.addEventListener('submit',async ev=>{
+    ev.preventDefault();const token=$('#admin-recovery-token').value.trim(),password=$('#admin-recovery-password').value;
+    if(password!==$('#admin-recovery-confirm').value){show(status,'The passwords do not match.',true);return}
+    const {error:verifyError}=await s.auth.verifyOtp({email,type:'recovery',token});
+    if(verifyError){show(status,verifyError.message,true);return}
+    const {error:updateError}=await s.auth.updateUser({password});
+    if(updateError){show(status,updateError.message,true);return}
+    await s.auth.signOut();recovery.hidden=true;form.hidden=false;show(status,'Admin password updated. Sign in using your new password.');
+   });
+  }
+  recovery.hidden=false;show(status,'If the owner account exists, a recovery code has been requested. Check the owner inbox.');
  });
  const url=new URL(location.href);
  if(url.searchParams.get('verified')==='1')show(status,'Email verified. Sign in to check your admin access.');

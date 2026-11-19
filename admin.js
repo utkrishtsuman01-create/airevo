@@ -312,29 +312,243 @@ async function accessRequests(s,host){
 async function categoriesAndAdmin(){}
 function mountDemoDashboard(){
  const main=$('#app main');if(!main)return;
- const old=$('.auth-shell',main);if(old)old.remove();
- let host=$('.admin-shell',main);
- if(!host){
-  main.insertAdjacentHTML('beforeend','<section class="section"><div class="container admin-shell"><aside class="admin-nav" id="admin-nav"><div class="admin-nav-label">DEMO WORKSPACE</div><button class="active" data-demo-tab="overview">Overview</button><button data-demo-tab="products">Products & variants</button><button data-demo-tab="categories">Categories</button><button data-demo-tab="collections">Collections</button><button data-demo-tab="orders">Orders & billing</button><button data-demo-tab="reviews">Reviews</button><button data-demo-tab="blogs">Blog posts</button><button data-demo-tab="inquiries">Enquiries</button></aside><div class="admin-main" id="admin-main"></div></div></section>');
- }
- const hostMain=$('#admin-main');
- const views={
- overview:'<div class="admin-stats"><div class="admin-stat"><small>Products</small><b>24</b></div><div class="admin-stat"><small>Orders</small><b>18</b></div><div class="admin-stat"><small>Pending reviews</small><b>3</b></div><div class="admin-stat"><small>New enquiries</small><b>5</b></div><div class="admin-stat"><small>Blog posts</small><b>6</b></div><div class="admin-stat"><small>Low-stock items</small><b>2</b></div></div><div class="admin-panel"><h3>Store overview</h3><p>This is a preview of the Airevo store administration workspace. The figures and records shown here are sample data only.</p><div class="admin-shortcuts"><button data-demo-tab="products">Preview products</button><button data-demo-tab="orders">Preview orders</button><button data-demo-tab="reviews">Preview reviews</button></div></div><div class="admin-panel"><h3>Low-stock watch</h3><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Stock left</th><th>Alert at</th><th>Status</th></tr></thead><tbody><tr><td>Air fryer 5L</td><td>2</td><td>5</td><td><span class="stock-low">Low stock</span></td></tr><tr><td>Electric kettle</td><td>3</td><td>5</td><td><span class="stock-low">Low stock</span></td></tr></tbody></table></div></div>',
- products:'<div class="admin-panel"><h3>Products & variants</h3><p>Sample catalogue preview · editing is disabled in demo mode.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead><tbody><tr><td>Digital Air Fryer 5L</td><td>Kitchen</td><td>₹6,499</td><td>2</td><td>Active</td></tr><tr><td>Electric Kettle 1.8L</td><td>Kitchen</td><td>₹1,299</td><td>3</td><td>Active</td></tr><tr><td>Steam Iron Pro</td><td>Home care</td><td>₹2,199</td><td>14</td><td>Active</td></tr></tbody></table></div></div>',
- categories:'<div class="admin-panel"><h3>Categories</h3><p>Kitchen appliances · Home care · Personal care · Smart living</p></div>',
- collections:'<div class="admin-panel"><h3>Collections</h3><p>Best sellers · New arrivals · Everyday essentials</p></div>',
- orders:'<div class="admin-panel"><h3>Orders & billing</h3><p>Sample order records only. No customer information or live orders are loaded.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody><tr><td>ARV-DEMO-1024</td><td>18 Nov 2026</td><td>2</td><td>₹7,798</td><td>Processing</td></tr><tr><td>ARV-DEMO-1023</td><td>17 Nov 2026</td><td>1</td><td>₹1,299</td><td>Delivered</td></tr></tbody></table></div></div>',
- reviews:'<div class="admin-panel"><h3>Reviews</h3><p>Sample moderation queue · no real customer reviews are displayed.</p><p>★★★★★ &nbsp; “Great product quality and quick delivery.”</p><p>★★★★☆ &nbsp; “Works exactly as expected.”</p></div>',
- blogs:'<div class="admin-panel"><h3>Blog posts</h3><p>Choosing the right air fryer · Everyday appliance care · A smarter kitchen</p></div>',
- inquiries:'<div class="admin-panel"><h3>Enquiries</h3><p>Sample enquiry inbox · real customer messages are not accessible in demo mode.</p><p>Product availability question — Sample record</p><p>Bulk purchase enquiry — Sample record</p></div>'
+ const nav=$('#admin-nav'),host=$('#admin-main');if(!nav||!host)return;
+ const KEY='airevo_demo_admin_workspace_v1';
+ const clone=x=>JSON.parse(JSON.stringify(x));
+ const seed={
+  categories:[
+   {id:'cat-kitchen',name:'Kitchen Appliances',description:'Appliances for everyday cooking'},
+   {id:'cat-home',name:'Home Care',description:'Cleaning and home-care essentials'},
+   {id:'cat-personal',name:'Personal Care',description:'Personal grooming and wellness'},
+   {id:'cat-smart',name:'Smart Living',description:'Connected home products'}
+  ],
+  products:[
+   {id:'prd-1001',name:'Digital Air Fryer 5L',sku:'AR-AF-500',categoryId:'cat-kitchen',mrp:7999,price:6499,stock:2,lowStock:5,active:true,description:'A roomy air fryer for everyday family meals.',variants:[{id:'var-1001',name:'5 Litre · Black',sku:'AR-AF-500-BK',price:6499,stock:2},{id:'var-1002',name:'5 Litre · Silver',sku:'AR-AF-500-SL',price:6799,stock:4}]},
+   {id:'prd-1002',name:'Electric Kettle 1.8L',sku:'AR-EK-180',categoryId:'cat-kitchen',mrp:1599,price:1299,stock:3,lowStock:5,active:true,description:'Fast-boil electric kettle with auto shut-off.',variants:[{id:'var-1003',name:'1.8 Litre · Stainless steel',sku:'AR-EK-180-SS',price:1299,stock:3}]},
+   {id:'prd-1003',name:'Steam Iron Pro',sku:'AR-SI-220',categoryId:'cat-home',mrp:2799,price:2199,stock:14,lowStock:4,active:true,description:'A practical steam iron for daily garment care.',variants:[]}
+  ],
+  collections:[
+   {id:'col-1',name:'Everyday essentials',description:'Useful appliances for daily routines.',active:true},
+   {id:'col-2',name:'New arrivals',description:'Recently added products.',active:true},
+   {id:'col-3',name:'Smart kitchen picks',description:'Thoughtful upgrades for the kitchen.',active:true}
+  ],
+  orders:[
+   {id:'ARV-DEMO-1024',date:'2026-11-18',customer:'Aarav Mehta (sample)',items:'Air Fryer 5L × 1, Kettle × 1',total:7798,status:'Processing',payment:'Paid'},
+   {id:'ARV-DEMO-1023',date:'2026-11-17',customer:'Mira Shah (sample)',items:'Electric Kettle × 1',total:1299,status:'Delivered',payment:'Paid'},
+   {id:'ARV-DEMO-1022',date:'2026-11-16',customer:'Kabir Rao (sample)',items:'Steam Iron Pro × 1',total:2199,status:'Pending',payment:'Pending'}
+  ],
+  reviews:[
+   {id:'rev-1',customer:'Sample customer A',product:'Digital Air Fryer 5L',rating:5,text:'Great product quality and quick delivery.',status:'Pending'},
+   {id:'rev-2',customer:'Sample customer B',product:'Electric Kettle 1.8L',rating:4,text:'Works exactly as expected.',status:'Published'}
+  ],
+  blogs:[
+   {id:'blog-1',title:'Choosing the right air fryer',slug:'choosing-the-right-air-fryer',excerpt:'A quick guide to capacity, controls and everyday use.',body:'Think about the number of people you cook for, the counter space available and the features you will use regularly.',status:'Published'},
+   {id:'blog-2',title:'Everyday appliance care',slug:'everyday-appliance-care',excerpt:'Simple habits that help appliances stay in good shape.',body:'Read the product manual, keep vents clear and clean appliances only as recommended by the manufacturer.',status:'Draft'},
+   {id:'blog-3',title:'A smarter kitchen',slug:'a-smarter-kitchen',excerpt:'Small upgrades that can make daily routines easier.',body:'Start with the tasks you repeat most often and choose appliances that fit your space and habits.',status:'Published'}
+  ],
+  inquiries:[
+   {id:'inq-1',name:'Sample visitor A',email:'visitor-a@example.test',subject:'Product availability question',message:'Is the 5L air fryer available?',status:'New'},
+   {id:'inq-2',name:'Sample visitor B',email:'visitor-b@example.test',subject:'Bulk purchase enquiry',message:'Please share details for a bulk purchase.',status:'In progress'}
+  ]
  };
- function showTab(tab){
-  $$('#admin-nav [data-demo-tab]').forEach(b=>b.classList.toggle('active',b.dataset.demoTab===tab));
-  hostMain.innerHTML='<div class="demo-note"><strong>DEMO MODE · READ ONLY</strong> — Sample data only. Authentication and live admin access are preserved for later activation.</div>'+(views[tab]||views.overview);
- }
- $('#admin-nav').onclick=e=>{const b=e.target.closest('[data-demo-tab]');if(b)showTab(b.dataset.demoTab)};
- hostMain.onclick=e=>{const b=e.target.closest('[data-demo-tab]');if(b)showTab(b.dataset.demoTab)};
- showTab('overview');
+ let state;
+ try{
+  const stored=JSON.parse(localStorage.getItem(KEY)||'null');
+  state=stored&&Array.isArray(stored.products)&&Array.isArray(stored.categories)?stored:clone(seed);
+ }catch(_){state=clone(seed)}
+ let tab='overview';
+ const id=prefix=>prefix+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
+ const categoryName=id=>state.categories.find(x=>x.id===id)?.name||'Uncategorised';
+ const save=message=>{
+  try{localStorage.setItem(KEY,JSON.stringify(state));toast(message||'Demo changes saved in this browser.')}
+  catch(e){toast('Could not save in this browser: '+e.message)}
+ };
+ const toast=message=>{
+  let el=$('#demo-toast');
+  if(!el){el=document.createElement('div');el.id='demo-toast';el.style.cssText='position:fixed;right:22px;bottom:22px;z-index:9999;background:#102534;color:#fff;padding:12px 16px;border-radius:10px;font-size:12px;box-shadow:0 8px 30px #0002';document.body.appendChild(el)}
+  el.textContent=message;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2800);
+ };
+ const field=(label,name,value,type,full,extra)=>{
+  return '<div class="field'+(full?' full':'')+'"><label for="demo-'+name+'">'+label+'</label>'+
+   (type==='textarea'?'<textarea id="demo-'+name+'" name="'+name+'" rows="4">'+esc(value||'')+'</textarea>':
+   type==='select'?'<select id="demo-'+name+'" name="'+name+'">'+extra.map(o=>'<option value="'+esc(o.value)+'" '+(String(o.value)===String(value)?'selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select>':
+   '<input id="demo-'+name+'" name="'+name+'" type="'+(type||'text')+'" value="'+esc(value??'')+'" '+(extra||'')+'>')+
+  '</div>';
+ };
+ const table=(headers,rows)=>'<div class="admin-table-wrap"><table class="admin-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+ (rows||'<tr><td colspan="'+headers.length+'">No records yet.</td></tr>')+'</tbody></table></div>';
+ const button=(action,label,idValue,secondary)=>'<button type="button" data-action="'+action+'" data-id="'+esc(idValue||'')+'" '+(secondary?'class="secondary"':'')+'>'+label+'</button>';
+ const actions=(items)=>'<div class="hero-buttons" style="gap:7px;flex-wrap:wrap">'+items+'</div>';
+ const editor=(title,form)=>'<div class="admin-panel" id="demo-editor"><div class="admin-panel-head"><h3>'+title+'</h3>'+button('editor-close','Close')+'</div>'+form+'</div>';
+ const setTab=next=>{
+  tab=next;
+  $$('#admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));
+  render();
+ };
+ const renderOverview=()=>{
+  const low=state.products.filter(p=>p.active&&Number(p.stock)<=Number(p.lowStock));
+  const recent=state.orders.slice(0,4).map(o=>'<tr><td>'+esc(o.id)+'</td><td>'+esc(o.customer)+'</td><td>'+money(o.total)+'</td><td>'+esc(o.status)+'</td></tr>').join('');
+  host.innerHTML='<div class="admin-stats">'+[
+   ['Products',state.products.length],['Orders',state.orders.length],['Pending reviews',state.reviews.filter(x=>x.status==='Pending').length],
+   ['New enquiries',state.inquiries.filter(x=>x.status==='New').length],['Blog posts',state.blogs.length],['Low-stock items',low.length]
+  ].map(x=>'<div class="admin-stat"><small>'+x[0]+'</small><b>'+x[1]+'</b></div>').join('')+'</div>'+
+  '<div class="admin-panel"><div class="admin-panel-head"><div><h3>Store overview</h3><p>Manage the sample catalogue and day-to-day store activity from this workspace.</p></div>'+button('reset-demo','Reset demo data')+'</div>'+
+  actions(button('go-tab','Manage products','products')+button('go-tab','View orders','orders')+button('go-tab','Write a blog post','blogs'))+'</div>'+
+  '<div class="admin-panel"><h3>Recent orders</h3>'+table(['Order','Customer','Total','Status'],recent)+'</div>'+
+  '<div class="admin-panel"><h3>Low-stock watch</h3>'+table(['Product','Stock left','Alert at','Status'],low.map(p=>'<tr><td>'+esc(p.name)+'</td><td>'+p.stock+'</td><td>'+p.lowStock+'</td><td><span class="stock-low">Low stock</span></td></tr>').join('')||'<tr><td colspan="4">All sample products are above their low-stock threshold.</td></tr>')+'</div>';
+ };
+ const renderProducts=()=>{
+  const rows=state.products.map(p=>'<tr><td><strong>'+esc(p.name)+'</strong><br><small>'+esc(p.sku)+'</small></td><td>'+esc(categoryName(p.categoryId))+'</td><td>'+money(p.price)+'</td><td>'+p.stock+'</td><td>'+(p.active?'Active':'Hidden')+'</td><td>'+p.variants.length+'</td><td>'+button('product-edit','Edit',p.id)+' '+button('variants-open','Variants',p.id,true)+' '+button('product-delete','Delete',p.id,true)+'</td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Products & variants</h3><p>Create, edit, hide and remove products in the demo catalogue.</p></div>'+button('product-add','Add product')+'</div>'+table(['Product','Category','Sale price','Stock','Status','Variants','Actions'],rows)+'</div>';
+ };
+ const renderCategories=()=>{
+  const rows=state.categories.map(c=>'<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+esc(c.description)+'</td><td>'+state.products.filter(p=>p.categoryId===c.id).length+'</td><td>'+button('category-edit','Edit',c.id)+' '+button('category-delete','Delete',c.id,true)+'</td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Categories</h3><p>Organise products into useful storefront categories.</p></div>'+button('category-add','Add category')+'</div>'+table(['Category','Description','Products','Actions'],rows)+'</div>';
+ };
+ const renderCollections=()=>{
+  const rows=state.collections.map(c=>'<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+esc(c.description)+'</td><td>'+(c.active?'Active':'Hidden')+'</td><td>'+button('collection-edit','Edit',c.id)+' '+button('collection-toggle',c.active?'Hide':'Publish',c.id,true)+' '+button('collection-delete','Delete',c.id,true)+'</td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Collections</h3><p>Create curated groups such as new arrivals and everyday essentials.</p></div>'+button('collection-add','Add collection')+'</div>'+table(['Collection','Description','Status','Actions'],rows)+'</div>';
+ };
+ const renderOrders=()=>{
+  const rows=state.orders.map(o=>'<tr><td><strong>'+esc(o.id)+'</strong><br><small>'+esc(o.date)+'</small></td><td>'+esc(o.customer)+'</td><td>'+esc(o.items)+'</td><td>'+money(o.total)+'</td><td><select data-order-status="'+esc(o.id)+'">'+['Pending','Processing','Shipped','Delivered','Cancelled'].map(x=>'<option '+(x===o.status?'selected':'')+'>'+x+'</option>').join('')+'</select></td><td><select data-payment-status="'+esc(o.id)+'">'+['Pending','Paid','Failed','Refunded'].map(x=>'<option '+(x===o.payment?'selected':'')+'>'+x+'</option>').join('')+'</select></td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><h3>Orders & billing</h3><p>Change order and payment status to demonstrate the order workflow. All entries are sample records.</p>'+table(['Order','Customer','Items','Total','Order status','Payment'],rows)+'</div>';
+ };
+ const renderReviews=()=>{
+  const rows=state.reviews.map(r=>'<tr><td>'+esc(r.customer)+'</td><td>'+esc(r.product)+'</td><td>'+('★'.repeat(Number(r.rating)||0))+'</td><td>'+esc(r.text)+'</td><td>'+esc(r.status)+'</td><td>'+button('review-toggle',r.status==='Published'?'Unpublish':'Approve',r.id)+' '+button('review-delete','Delete',r.id,true)+'</td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><h3>Reviews</h3><p>Approve reviews before they appear in the sample moderation workflow.</p>'+table(['Customer','Product','Rating','Review','Status','Actions'],rows)+'</div>';
+ };
+ const renderBlogs=()=>{
+  const rows=state.blogs.map(b=>'<tr><td><strong>'+esc(b.title)+'</strong><br><small>/'+esc(b.slug)+'</small></td><td>'+esc(b.excerpt)+'</td><td>'+esc(b.status)+'</td><td>'+button('blog-edit','Edit',b.id)+' '+button('blog-delete','Delete',b.id,true)+'</td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Blog posts</h3><p>Draft and publish sample buying guides and editorial posts.</p></div>'+button('blog-add','New post')+'</div>'+table(['Post','Excerpt','Status','Actions'],rows)+'</div>';
+ };
+ const renderInquiries=()=>{
+  const rows=state.inquiries.map(q=>'<tr><td><strong>'+esc(q.subject)+'</strong><br><small>'+esc(q.name)+' · '+esc(q.email)+'</small><p>'+esc(q.message)+'</p></td><td><select data-inquiry-status="'+esc(q.id)+'">'+['New','In progress','Resolved'].map(x=>'<option '+(x===q.status?'selected':'')+'>'+x+'</option>').join('')+'</select></td></tr>').join('');
+  host.innerHTML='<div class="admin-panel"><h3>Enquiries</h3><p>Update the status of sample customer enquiries.</p>'+table(['Enquiry','Status'],rows)+'</div>';
+ };
+ const render=()=>{
+  host.innerHTML='<div class="demo-note"><strong>INTERACTIVE DEMO WORKSPACE</strong> · Sample records only. Changes are saved in this browser and do not modify Supabase, live orders or the public storefront.</div>';
+  const before=host.innerHTML;
+  if(tab==='overview'){renderOverview()}else if(tab==='products'){renderProducts()}else if(tab==='categories'){renderCategories()}else if(tab==='collections'){renderCollections()}else if(tab==='orders'){renderOrders()}else if(tab==='reviews'){renderReviews()}else if(tab==='blogs'){renderBlogs()}else if(tab==='inquiries'){renderInquiries()}else{renderOverview()}
+  host.innerHTML=before+host.innerHTML;
+ };
+ const showProductForm=p=>{
+  const isEdit=!!p;
+  const options=state.categories.map(c=>({value:c.id,label:c.name}));
+  const form='<form id="demo-product-form"><div class="admin-form-grid">'+
+   field('Product name','product-name',p?.name||'','text',false,'required')+
+   field('SKU / model number','product-sku',p?.sku||'','text',false,'required')+
+   field('Category','product-category',p?.categoryId||options[0]?.value||'','select',false,options)+
+   field('MRP (₹)','product-mrp',p?.mrp??0,'number',false,'min="0" step="0.01" required')+
+   field('Sale price (₹)','product-price',p?.price??0,'number',false,'min="0" step="0.01" required')+
+   field('Stock quantity','product-stock',p?.stock??0,'number',false,'min="0" step="1" required')+
+   field('Low-stock alert','product-lowstock',p?.lowStock??5,'number',false,'min="0" step="1" required')+
+   field('Description','product-description',p?.description||'','textarea',true)+
+   field('Storefront status','product-active',p?.active!==false?'Active':'Hidden','select',false,[{value:'Active',label:'Active'},{value:'Hidden',label:'Hidden'}])+
+   '</div><div class="hero-buttons"><button class="btn" type="submit">'+(isEdit?'Save changes':'Create product')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
+  host.insertAdjacentHTML('beforeend',editor(isEdit?'Edit product':'Add product',form));
+  $('#demo-editor').scrollIntoView({behavior:'smooth',block:'start'});
+ };
+ const showCategoryForm=c=>{
+  const form='<form id="demo-category-form"><div class="admin-form-grid">'+field('Category name','category-name',c?.name||'','text',false,'required')+field('Description','category-description',c?.description||'','textarea',true)+'</div><div class="hero-buttons"><button class="btn" type="submit">'+(c?'Save changes':'Create category')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
+  host.insertAdjacentHTML('beforeend',editor(c?'Edit category':'Add category',form));
+  $('#demo-editor').dataset.editId=c?.id||'';
+ };
+ const showCollectionForm=c=>{
+  const form='<form id="demo-collection-form"><div class="admin-form-grid">'+field('Collection name','collection-name',c?.name||'','text',false,'required')+field('Description','collection-description',c?.description||'','textarea',true)+field('Status','collection-active',c?.active===false?'Hidden':'Active','select',false,[{value:'Active',label:'Active'},{value:'Hidden',label:'Hidden'}])+'</div><div class="hero-buttons"><button class="btn" type="submit">'+(c?'Save changes':'Create collection')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
+  host.insertAdjacentHTML('beforeend',editor(c?'Edit collection':'Add collection',form));
+  $('#demo-editor').dataset.editId=c?.id||'';
+ };
+ const showBlogForm=b=>{
+  const form='<form id="demo-blog-form"><div class="admin-form-grid">'+field('Post title','blog-title',b?.title||'','text',false,'required')+field('URL slug','blog-slug',b?.slug||'','text',false,'required')+field('Excerpt','blog-excerpt',b?.excerpt||'','textarea',true)+field('Article content','blog-body',b?.body||'','textarea',true)+field('Status','blog-status',b?.status||'Draft','select',false,[{value:'Draft',label:'Draft'},{value:'Published',label:'Published'}])+'</div><div class="hero-buttons"><button class="btn" type="submit">'+(b?'Save post':'Create post')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
+  host.insertAdjacentHTML('beforeend',editor(b?'Edit blog post':'New blog post',form));
+  $('#demo-editor').dataset.editId=b?.id||'';
+ };
+ const renderVariants=p=>{
+  const rows=p.variants.map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+esc(v.sku)+'</td><td>'+money(v.price)+'</td><td>'+v.stock+'</td><td>'+button('variant-edit','Edit',p.id+'|'+v.id)+' '+button('variant-delete','Delete',p.id+'|'+v.id,true)+'</td></tr>').join('');
+  host.insertAdjacentHTML('beforeend',editor('Variants · '+esc(p.name),'<p>Manage model, finish, size or capacity options for this product.</p>'+table(['Variant','SKU','Price','Stock','Actions'],rows)+'<div class="hero-buttons">'+button('variant-add','Add variant',p.id)+'</div>'));
+  $('#demo-editor').dataset.productId=p.id;
+ };
+ const showVariantForm=(p,v)=>{
+  const form='<form id="demo-variant-form"><div class="admin-form-grid">'+field('Variant name','variant-name',v?.name||'','text',false,'required')+field('SKU','variant-sku',v?.sku||'','text')+field('Price (₹)','variant-price',v?.price??p.price,'number',false,'min="0" step="0.01" required')+field('Stock quantity','variant-stock',v?.stock??0,'number',false,'min="0" step="1" required')+'</div><div class="hero-buttons"><button class="btn" type="submit">Save variant</button><button class="btn dark" type="button" data-action="variants-back" data-id="'+p.id+'">Cancel</button></div></form>';
+  host.insertAdjacentHTML('beforeend',editor(v?'Edit variant':'Add variant',form));
+  $('#demo-editor').dataset.productId=p.id;$('#demo-editor').dataset.variantId=v?.id||'';
+ };
+ nav.innerHTML='<div class="admin-nav-label">AIREVO DEMO WORKSPACE</div>'+
+  [['overview','Overview'],['products','Products & variants'],['categories','Categories'],['collections','Collections'],['orders','Orders & billing'],['reviews','Reviews'],['blogs','Blog posts'],['inquiries','Enquiries']].map(x=>'<button type="button" data-admin-tab="'+x[0]+'">'+x[1]+'</button>').join('')+
+  '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #ffffff20"><small style="display:block;color:#8fa5b4;font-size:9px;line-height:1.5;margin-bottom:9px">Changes are local to this browser.</small>'+button('reset-demo','Reset sample data')+'</div>';
+ nav.onclick=e=>{const b=e.target.closest('[data-admin-tab]');if(b){setTab(b.dataset.adminTab);return}const a=e.target.closest('[data-action="reset-demo"]');if(a&&confirm('Reset all demo records to the original sample data?')){state=clone(seed);save('Demo data reset.');setTab('overview')}};
+ host.onclick=e=>{
+  const jump=e.target.closest('[data-action="go-tab"]');if(jump){setTab(jump.dataset.id);return}
+  const b=e.target.closest('[data-action]');if(!b)return;
+  const action=b.dataset.action,idValue=b.dataset.id;
+  if(action==='editor-close'){$('#demo-editor')?.remove();return}
+  if(action==='product-add'){showProductForm(null);return}
+  if(action==='product-edit'){const p=state.products.find(x=>x.id===idValue);if(p)showProductForm(p);return}
+  if(action==='product-delete'){const p=state.products.find(x=>x.id===idValue);if(p&&confirm('Delete '+p.name+' from the demo catalogue?')){state.products=state.products.filter(x=>x.id!==idValue);save('Product deleted.');render()}return}
+  if(action==='variants-open'){const p=state.products.find(x=>x.id===idValue);if(p)renderVariants(p);return}
+  if(action==='variant-add'){const p=state.products.find(x=>x.id===idValue);if(p)showVariantForm(p,null);return}
+  if(action==='variant-edit'||action==='variant-delete'||action==='variants-back'){
+   const parts=idValue.split('|'),pid=action==='variants-back'?idValue:parts[0],vid=parts[1],p=state.products.find(x=>x.id===pid);if(!p)return;
+   if(action==='variants-back'){renderVariants(p);return}
+   const v=p.variants.find(x=>x.id===vid);if(action==='variant-edit'&&v)showVariantForm(p,v);
+   if(action==='variant-delete'&&v&&confirm('Delete this variant?')){p.variants=p.variants.filter(x=>x.id!==vid);save('Variant deleted.');renderVariants(p)}
+   return;
+  }
+  if(action==='category-add'){showCategoryForm(null);return}
+  if(action==='category-edit'){const c=state.categories.find(x=>x.id===idValue);if(c)showCategoryForm(c);return}
+  if(action==='category-delete'){const c=state.categories.find(x=>x.id===idValue);if(c&&confirm('Delete this category? Products will become uncategorised.')){state.categories=state.categories.filter(x=>x.id!==idValue);state.products.forEach(p=>{if(p.categoryId===idValue)p.categoryId='' });save('Category deleted.');render()}return}
+  if(action==='collection-add'){showCollectionForm(null);return}
+  if(action==='collection-edit'){const c=state.collections.find(x=>x.id===idValue);if(c)showCollectionForm(c);return}
+  if(action==='collection-toggle'){const c=state.collections.find(x=>x.id===idValue);if(c){c.active=!c.active;save('Collection status updated.');render()}return}
+  if(action==='collection-delete'){if(confirm('Delete this collection?')){state.collections=state.collections.filter(x=>x.id!==idValue);save('Collection deleted.');render()}return}
+  if(action==='review-toggle'){const r=state.reviews.find(x=>x.id===idValue);if(r){r.status=r.status==='Published'?'Pending':'Published';save('Review status updated.');render()}return}
+  if(action==='review-delete'){if(confirm('Delete this sample review?')){state.reviews=state.reviews.filter(x=>x.id!==idValue);save('Review deleted.');render()}return}
+  if(action==='blog-add'){showBlogForm(null);return}
+  if(action==='blog-edit'){const b=state.blogs.find(x=>x.id===idValue);if(b)showBlogForm(b);return}
+  if(action==='blog-delete'){if(confirm('Delete this blog post?')){state.blogs=state.blogs.filter(x=>x.id!==idValue);save('Blog post deleted.');render()}return}
+ };
+ host.onsubmit=e=>{
+  const form=e.target;if(!form.id.startsWith('demo-'))return;
+  e.preventDefault();const d=new FormData(form),val=n=>String(d.get(n)||'').trim(),num=n=>Number(d.get(n)||0);
+  const edit=$('#demo-editor')?.dataset.editId||'';
+  if(form.id==='demo-product-form'){
+   const payload={id:edit||id('prd'),name:val('product-name'),sku:val('product-sku'),categoryId:val('product-category'),mrp:num('product-mrp'),price:num('product-price'),stock:num('product-stock'),lowStock:num('product-lowstock'),description:val('product-description'),active:val('product-active')==='Active',variants:state.products.find(x=>x.id===edit)?.variants||[]};
+   if(!payload.name||!payload.sku){toast('Product name and SKU are required.');return}
+   if(edit)state.products=state.products.map(x=>x.id===edit?payload:x);else state.products.unshift(payload);
+   save(edit?'Product updated.':'Product created.');render();return;
+  }
+  if(form.id==='demo-category-form'){
+   const payload={id:edit||id('cat'),name:val('category-name'),description:val('category-description')};
+   if(!payload.name){toast('Enter a category name.');return}
+   if(edit)state.categories=state.categories.map(x=>x.id===edit?payload:x);else state.categories.push(payload);
+   save(edit?'Category updated.':'Category created.');render();return;
+  }
+  if(form.id==='demo-collection-form'){
+   const payload={id:edit||id('col'),name:val('collection-name'),description:val('collection-description'),active:val('collection-active')==='Active'};
+   if(!payload.name){toast('Enter a collection name.');return}
+   if(edit)state.collections=state.collections.map(x=>x.id===edit?payload:x);else state.collections.push(payload);
+   save(edit?'Collection updated.':'Collection created.');render();return;
+  }
+  if(form.id==='demo-blog-form'){
+   const payload={id:edit||id('blog'),title:val('blog-title'),slug:val('blog-slug'),excerpt:val('blog-excerpt'),body:val('blog-body'),status:val('blog-status')};
+   if(!payload.title||!payload.slug){toast('Post title and URL slug are required.');return}
+   if(edit)state.blogs=state.blogs.map(x=>x.id===edit?payload:x);else state.blogs.unshift(payload);
+   save(edit?'Blog post updated.':'Blog post created.');render();return;
+  }
+  if(form.id==='demo-variant-form'){
+   const pid=$('#demo-editor')?.dataset.productId||'',vid=$('#demo-editor')?.dataset.variantId||'',p=state.products.find(x=>x.id===pid);if(!p)return;
+   const payload={id:vid||id('var'),name:val('variant-name'),sku:val('variant-sku'),price:num('variant-price'),stock:num('variant-stock')};
+   if(!payload.name){toast('Enter a variant name.');return}
+   if(vid)p.variants=p.variants.map(x=>x.id===vid?payload:x);else p.variants.push(payload);
+   save(vid?'Variant updated.':'Variant created.');renderVariants(p);
+  }
+ };
+ host.onchange=e=>{
+  const el=e.target;
+  if(el.dataset.orderStatus){const x=state.orders.find(o=>o.id===el.dataset.orderStatus);if(x){x.status=el.value;save('Order status updated.')} }
+  if(el.dataset.paymentStatus){const x=state.orders.find(o=>o.id===el.dataset.paymentStatus);if(x){x.payment=el.value;save('Payment status updated.')} }
+  if(el.dataset.inquiryStatus){const x=state.inquiries.find(q=>q.id===el.dataset.inquiryStatus);if(x){x.status=el.value;save('Enquiry status updated.')} }
+ };
+ setTab('overview');
 }
 function render(){mountDemoDashboard()}
 window.AirevoAdmin={render,verify};

@@ -535,13 +535,13 @@ async function placeOrder(e){
  e.preventDefault();const s=db(),status=$('#checkout-status'),btn=$('#checkout-form button');
  if(!S.cart.length){status.textContent='Your basket is empty.';status.className='status-message show error';return}
  const session=await s.auth.getSession(),user=session.data.session?.user;
- if(!user){location.href='/login.html?next=%2Fcatalogue.html%3Fcheckout%3D1';return}
+ if(!user){location.href='/login.html?next=%2Fcheckout.html';return}
  status.textContent='';status.className='status-message';btn.disabled=true;btn.textContent='Placing order…';
  const body={customer_name:$('#checkout-name').value.trim(),customer_phone:$('#checkout-phone').value.trim(),customer_email:$('#checkout-email')?.value.trim()||user.email||'',shipping_address:{floor:$('#checkout-floor')?.value.trim()||'',address:$('#checkout-address').value.trim(),landmark:$('#checkout-landmark')?.value.trim()||'',city:$('#checkout-city').value.trim(),state:$('#checkout-state').value.trim(),pincode:$('#checkout-pin').value.trim()},items:S.cart.map(x=>({product_id:x.product_id,variant_id:x.variant_id,quantity:x.qty}))};
  try{
   const {data,error}=await s.functions.invoke('place-order',{body});
   if(error||data?.error||!data?.order)throw new Error(data?.error||error?.message||'The order could not be saved. Please try again.');
-  S.cart=[];saveCart();renderCart();syncProductCardQuantities();$('#checkout-modal').classList.remove('open');
+  S.cart=[];saveCart();renderCart();syncProductCardQuantities();$('#checkout-modal')?.classList.remove('open');
   const d=data.order,m=document.createElement('div');m.className='modal-backdrop open';m.innerHTML='<div class="modal"><div class="modal-head"><span class="hero-kicker">Order received</span><h2>Thank you for your order.</h2><p>Your demo order has been saved to the Airevo database.</p></div><div class="modal-body"><h3>'+esc(d.order_number)+'</h3><p>Order total: <strong>'+money(d.grand_total)+'</strong></p><p>Payment remains pending. Razorpay is not connected in this demo.</p><a class="btn" href="/account.html">View my account ↗</a><button class="btn dark" id="confirmation-close">Continue shopping</button></div></div>';document.body.appendChild(m);$('#confirmation-close',m).onclick=()=>m.remove();
  }catch(error){status.textContent=error.message||'Unable to place the demo order.';status.className='status-message show error'}
  finally{btn.disabled=false;btn.textContent='Place demo order ↗'}
@@ -611,7 +611,7 @@ async function render(){
  if(page==='account')bindAccount();
  if(page==='checkout')bindCheckout();
  }catch(e){console.error(e);shell(heroHead('Airevo','Something went wrong.','Please refresh the page or contact the Airevo team.')+'<section class="section"><div class="container">'+esc(e.message||e)+'</div></section>')}
- if(loadTask&&!S.dataLoaded)loadTask.then(()=>{if(S.dataLoaded&&!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
+ if(loadTask&&!S.dataLoaded&&page!=='checkout')loadTask.then(()=>{if(S.dataLoaded&&!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
 }
 window.AirevoSite={render,toast,load};
 render();

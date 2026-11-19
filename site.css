@@ -419,3 +419,26 @@ body{background:#f4faff;color:#080b10}
 .product-qty-control button{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:50%;background:#eef5f8;color:#18394b;font-size:20px;line-height:1;cursor:pointer;}
 .product-qty-control button:hover{background:#dcecf3;color:#087fbd;}
 .product-qty-control span{min-width:12px;text-align:center;font-variant-numeric:tabular-nums;}
+
+/* Dedicated Airevo checkout page */
+.checkout-hero{padding:48px 0 42px;background:linear-gradient(125deg,#f2f9fc,#e4f2f8);border-bottom:1px solid #dceaf0}
+.checkout-hero .breadcrumb{font-size:11px;color:#6d8290;margin-bottom:22px}.checkout-hero .breadcrumb a{color:#087db8;font-weight:700}
+.checkout-hero h1{font:800 clamp(34px,4vw,52px)/1.08 Manrope,sans-serif;letter-spacing:-.05em;color:#143247;margin:13px 0}.checkout-hero p{margin:0;color:#657987;font-size:14px}
+.checkout-section{padding-top:44px}.checkout-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.8fr);gap:24px;align-items:start}.checkout-main{min-width:0}
+.checkout-card,.checkout-summary{border:1px solid #dce7ed;border-radius:16px;background:#fff;box-shadow:0 14px 38px #102d3d0a}.checkout-card{padding:clamp(20px,3vw,34px)}
+.checkout-card-heading{margin-bottom:22px}.checkout-card-heading h2,.checkout-summary-head h2{font:800 22px/1.2 Manrope;color:#17384d;margin:8px 0}.checkout-card-heading p{margin:0;color:#71818c;font-size:12px}
+.checkout-subheading{border-top:1px solid #e5edf1;padding-top:25px;margin-top:28px}.checkout-card .form-grid{gap:17px}.checkout-card .field label{display:block;font-size:11px;font-weight:800;color:#304c5e;margin-bottom:7px}
+.checkout-card .field input{width:100%;min-height:48px;border:1px solid #d5e1e7;border-radius:9px;padding:12px 13px;background:#fff;color:#19394d;font-size:13px}.checkout-card .field input:focus{border-color:#159bd8}.checkout-card .field input[readonly]{background:#f4f8fa;color:#607785}
+.checkout-optional{font-weight:500;color:#84939d}.checkout-payment{display:flex;align-items:center;gap:14px;border:1px solid #d7e8f0;border-radius:12px;background:#f6fbfe;padding:17px}
+.checkout-payment-icon{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:12px;background:#e1f2fb;color:#087db8;font:800 19px Manrope}.checkout-payment strong{display:block;font-size:13px;color:#1a3a4e}
+.checkout-payment p{font-size:11px;line-height:1.6;color:#6c7e89;margin:4px 0 7px}.checkout-coming-soon{display:inline-flex;padding:4px 8px;border-radius:999px;background:#e9eef1;color:#617480;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.checkout-submit-row{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid #e5edf1;margin-top:24px;padding-top:20px}.checkout-submit-row p{max-width:340px;margin:0;color:#758590;font-size:11px;line-height:1.6}.checkout-submit-row .btn{white-space:nowrap;min-height:48px}
+.checkout-summary{position:sticky;top:112px;padding:23px}.checkout-summary-head{display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px}.checkout-summary-head .eyebrow,.checkout-summary-head h2{grid-column:1/-1}.checkout-summary-head>span:last-child{font-size:10px;color:#7c8b95}
+.checkout-items{display:grid;gap:15px;margin:20px 0}.checkout-item{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:11px;align-items:center}.checkout-item img{width:58px;height:58px;object-fit:cover;border-radius:9px;background:#f1f6f8}
+.checkout-item-copy{min-width:0;display:grid;gap:4px}.checkout-item-copy strong{font-size:11px;line-height:1.45;color:#203e51}.checkout-item-copy small{font-size:10px;color:#81909a}.checkout-item>b{font-size:11px;color:#1b3a4e;white-space:nowrap}
+.checkout-totals{border-top:1px solid #e5edf1;padding-top:15px;display:grid;gap:12px}.checkout-totals>div{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#6c7e89}.checkout-totals b{color:#234357}
+.checkout-totals .checkout-grand-total{border-top:1px solid #e5edf1;padding-top:14px;margin-top:3px;font-size:13px;color:#19394d;font-weight:800}.checkout-grand-total b{font-size:17px;color:#087db8}
+.checkout-summary-note{font-size:10px;line-height:1.65;color:#83919a;margin:17px 0}.checkout-back-link{font-size:11px;font-weight:800;color:#087db8}#checkout-status:empty{display:none}
+@media(max-width:900px){.checkout-layout{grid-template-columns:minmax(0,1fr) 310px;gap:16px}.checkout-summary{padding:18px}}
+@media(max-width:720px){.checkout-layout{grid-template-columns:1fr}.checkout-summary{position:static;grid-row:1}.checkout-card{padding:20px}.checkout-hero{padding:34px 0}.checkout-section{padding-top:25px}}
+@media(max-width:480px){.checkout-submit-row{align-items:stretch;flex-direction:column}.checkout-submit-row .btn{width:100%}.checkout-summary{padding:17px}.checkout-item{grid-template-columns:52px minmax(0,1fr) auto}.checkout-item img{width:52px;height:52px}}

@@ -542,7 +542,7 @@ async function placeOrder(e){
  try{
   const {data,error}=await s.functions.invoke('place-order',{body});
   if(error||data?.error||!data?.order)throw new Error(data?.error||error?.message||'The order could not be saved. Please try again.');
-  S.cart=[];saveCart();renderCart();$('#checkout-modal').classList.remove('open');
+  S.cart=[];saveCart();renderCart();syncProductCardQuantities();$('#checkout-modal').classList.remove('open');
   const d=data.order,m=document.createElement('div');m.className='modal-backdrop open';m.innerHTML='<div class="modal"><div class="modal-head"><span class="hero-kicker">Order received</span><h2>Thank you for your order.</h2><p>Your demo order has been saved to the Airevo database.</p></div><div class="modal-body"><h3>'+esc(d.order_number)+'</h3><p>Order total: <strong>'+money(d.grand_total)+'</strong></p><p>Payment remains pending. Razorpay is not connected in this demo.</p><a class="btn" href="/account.html">View my account ↗</a><button class="btn dark" id="confirmation-close">Continue shopping</button></div></div>';document.body.appendChild(m);$('#confirmation-close',m).onclick=()=>m.remove();
  }catch(error){status.textContent=error.message||'Unable to place the demo order.';status.className='status-message show error'}
  finally{btn.disabled=false;btn.textContent='Place demo order ↗'}

@@ -34,23 +34,47 @@ function customerBoot(){
   }
   btn.disabled=false;
  });
- $('#forgot-password')?.addEventListener('click',async e=>{
-  e.preventDefault();const email=$('#auth-email').value.trim();if(!email){show(status,'Enter your email address first.');$('#auth-email').focus();return}
-  const {error}=await s.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/login.html?type=recovery'});
-  show(status,error?error.message:'Password reset instructions have been sent if this email belongs to an account.',!!error);
+ const recoveryEmail=$('#password-recovery-email-form'),recoveryCode=$('#password-recovery-code-form'),recoveryNew=$('#password-recovery-new-form');
+ const recoveryForms=[form,recoveryEmail,recoveryCode,recoveryNew];
+ function showRecoveryStep(step,title,message=''){
+  recoveryForms.forEach((node,index)=>{if(node)node.hidden=index!==step});
+  $('#auth-heading').textContent=title;
+  if(message)show(status,message);else{status.className='status-message';status.textContent=''}
+ }
+ let recoveryAddress='';
+ $('#forgot-password')?.addEventListener('click',e=>{e.preventDefault();recoveryAddress=$('#auth-email').value.trim();$('#recovery-email').value=recoveryAddress;showRecoveryStep(1,'Reset your password','Enter the email address linked to your Airevo account.')});
+ $('#recovery-back-login')?.addEventListener('click',()=>showRecoveryStep(0,'Sign in to your account'));
+ recoveryEmail?.addEventListener('submit',async e=>{
+  e.preventDefault();recoveryAddress=$('#recovery-email').value.trim();const btn=$('#recovery-send-code');btn.disabled=true;
+  const {error}=await s.auth.resetPasswordForEmail(recoveryAddress);
+  if(error)show(status,error.message,true);
+  else{showRecoveryStep(2,'Verify your email','If an account exists for this address, a verification code has been sent. Check your inbox and spam folder.');}
+  btn.disabled=false;
+ });
+ $('#recovery-resend-code')?.addEventListener('click',async()=>{
+  const btn=$('#recovery-resend-code');btn.disabled=true;const {error}=await s.auth.resetPasswordForEmail(recoveryAddress);
+  show(status,error?error.message:'A new code has been requested. Check your inbox.',!!error);btn.disabled=false;
+ });
+ $('#recovery-back-email')?.addEventListener('click',()=>showRecoveryStep(1,'Reset your password'));
+ recoveryCode?.addEventListener('submit',async e=>{
+  e.preventDefault();const token=$('#recovery-code').value.trim(),btn=$('#recovery-verify-code');btn.disabled=true;
+  const {error}=await s.auth.verifyOtp({email:recoveryAddress,token,type:'recovery'});
+  if(error)show(status,error.message,true);
+  else showRecoveryStep(3,'Create a new password','Your email has been verified. Choose a new password.');
+  btn.disabled=false;
+ });
+ recoveryNew?.addEventListener('submit',async e=>{
+  e.preventDefault();const password=$('#recovery-new-password').value,confirm=$('#recovery-confirm-password').value,btn=$('#recovery-update-password');
+  if(password!==confirm){show(status,'The passwords do not match.',true);return}
+  if(password.length<8){show(status,'Use at least 8 characters for your password.',true);return}
+  btn.disabled=true;const {error}=await s.auth.updateUser({password});
+  if(error)show(status,error.message,true);
+  else{showRecoveryStep(0,'Sign in to your account','Your password has been updated. Please sign in with your new password.');$('#auth-password').value='';}
+  btn.disabled=false;
  });
  const url=new URL(location.href);
- if(url.searchParams.get('type')==='recovery'){
-  form.hidden=true;$('#password-reset-form').hidden=false;$('#auth-heading').textContent='Choose a new password';
-  $('#password-reset-form').addEventListener('submit',async e=>{
-   e.preventDefault();const password=$('#reset-new-password').value;
-   const {error}=await s.auth.updateUser({password});
-   show(status,error?error.message:'Your password has been updated. You can now sign in.',!!error);
-   if(!error){$('#password-reset-form').hidden=true;form.hidden=false;setMode('login')}
-  });
- }
  if(url.searchParams.get('verified')==='1')show(status,'Email verification completed. Sign in to continue.');
- s.auth.getSession().then(({data})=>{if(data.session&&url.searchParams.get('type')!=='recovery')redirectAfterLogin()});
+ s.auth.getSession().then(({data})=>{if(data.session&&!['recovery'].includes(url.searchParams.get('type')))redirectAfterLogin()});
 }
 function adminBootForm(){
  const s=client();if(!s)return;

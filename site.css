@@ -364,3 +364,30 @@ body{background:#f4faff;color:#080b10}
 
 /* Ensure native hidden states always win over component display rules. */
 [hidden]{display:none!important}
+
+
+/* Customer account, saved address, order actions and private Admin Help chat */
+.account-overview{display:grid;gap:18px}
+.account-details-panel p{margin:9px 0;color:#435c6d}
+.account-security-block{border-top:1px solid #e1ebf0;margin-top:22px;padding-top:18px}
+.account-security-block h4{margin:0 0 12px;font:700 15px Manrope;color:#17374c}
+.account-order-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.customer-support-box{margin-top:14px;border:1px solid #d9e7ee;border-radius:14px;padding:14px;background:#f7fbfd}
+.support-thread{height:310px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:8px}
+.support-message{max-width:min(85%,560px);padding:11px 13px;border-radius:13px;background:#fff;border:1px solid #dce8ee}
+.support-message.mine{align-self:flex-end;background:#e6f5fd;border-color:#c3e7f7}
+.support-message.theirs{align-self:flex-start}
+.support-message small{display:block;color:#6c8391;font-size:10px;margin-bottom:5px}
+.support-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#17374c;font-size:13px}
+.support-message a{display:inline-block;margin-top:7px;color:#087db6;font-size:12px;font-weight:700}
+.support-compose{display:flex;align-items:flex-end;gap:8px;border-top:1px solid #dce8ee;padding-top:12px}
+.support-compose textarea{flex:1;min-width:0;min-height:48px;max-height:130px;resize:vertical;border:1px solid #d4e3ea;border-radius:10px;padding:11px;font:13px inherit;background:#fff}
+.support-attach{width:42px;height:42px;flex:none;display:grid;place-items:center;border:1px solid #cfe0e8;border-radius:50%;background:#fff;color:#087db6;font-size:25px;cursor:pointer}
+.admin-support-layout{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:16px}
+.admin-support-list{display:flex;flex-direction:column;gap:7px;max-height:520px;overflow:auto}
+.admin-support-item{display:flex;flex-direction:column;gap:4px;text-align:left;border:1px solid #dbe7ed;background:#fff;border-radius:10px;padding:12px;cursor:pointer;color:#18384b}
+.admin-support-item.active{border-color:#159bd8;background:#eef9fe}
+.admin-support-item small{font-size:10px;color:#718592}
+.admin-support-chat{min-width:0}
+.admin-support-chat .support-thread{height:380px;border:1px solid #dce8ee;border-radius:12px;background:#f7fbfd;margin-bottom:12px}
+@media(max-width:700px){.admin-support-layout{grid-template-columns:1fr}.admin-support-list{max-height:220px}.support-compose .btn{padding:11px 13px}.account-order-actions{min-width:140px}}

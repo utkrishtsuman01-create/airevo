@@ -410,7 +410,7 @@ async function bindAccount(){
   if(reauthError){showAccountStatus(status,'Current password is incorrect.',true);btn.disabled=false;return}
   const {error}=await s.auth.updateUser({password:next});showAccountStatus(status,error?.message||'Password changed successfully.',!!error);if(!error)e.currentTarget.reset();btn.disabled=false;
  });
- document.addEventListener('airevo:open-support',()=>loadCustomerSupport(s,user));
+ if(!window.__airevoAccountSupportOpenBound){document.addEventListener('airevo:open-support',()=>loadCustomerSupport(s,user));window.__airevoAccountSupportOpenBound=true;}
  $('#customer-support-form')?.addEventListener('submit',async e=>{
   e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type=submit]'),message=$('#customer-support-message').value.trim(),file=$('#customer-support-file').files[0];if(!message&&!file)return;
   btn.disabled=true;

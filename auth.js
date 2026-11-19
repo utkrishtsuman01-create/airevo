@@ -94,15 +94,17 @@ function adminBootForm(){
  all('[data-admin-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.adminMode)));
  async function checkAdmin(){
   const {data:{session}}=await s.auth.getSession();if(!session)return false;
+  if(String(session.user.email||'').toLowerCase()!=='info@airevo.com'){
+   show(status,'This account is not the designated Airevo owner. Admin access is restricted to info@airevo.com.',true);return false;
+  }
+  if(!session.user.email_confirmed_at){show(status,'Verify info@airevo.com using the Supabase verification email, then sign in again.',true);return false}
   const {data:role,error}=await s.from('user_roles').select('role').eq('user_id',session.user.id).maybeSingle();
   if(error){show(status,error.message,true);return false}
-  if(role?.role==='admin'){show(status,'Administrator access verified. Loading dashboard…');window.AirevoAdmin?.render();return true}
-  const {data:req}=await s.from('admin_access_requests').select('status').eq('user_id',session.user.id).maybeSingle();
-  if(req?.status==='pending'){show(status,'Your email is signed in, but admin access is still pending approval.');}
-  else{
-   show(status,'This account is not the designated Airevo owner. Admin access is restricted to info@airevo.com.',true);
+  if(role?.role!=='admin'){
+   const {data:bootstrap,error:bootstrapError}=await s.functions.invoke('bootstrap-owner-admin');
+   if(bootstrapError||!bootstrap?.ok){show(status,bootstrapError?.message||bootstrap?.error||'Unable to activate the permanent owner account.',true);return false}
   }
-  return false;
+  show(status,'Permanent owner access verified. Loading dashboard…');window.AirevoAdmin?.render();return true;
  }
  form.addEventListener('submit',async e=>{
   e.preventDefault();const email=$('#admin-email').value.trim(),password=$('#admin-password').value,btn=$('#admin-auth-submit');btn.disabled=true;
@@ -112,7 +114,7 @@ function adminBootForm(){
    if(password!==$('#admin-confirm').value){show(status,'The passwords do not match.',true);btn.disabled=false;return}
    const {data,error}=await s.auth.signUp({email,password,options:{data:{full_name:name,airevo_admin_request:true},emailRedirectTo:location.origin+'/admin?verified=1'}});
    if(error)show(status,error.message,true);
-   else show(status,data.session?'Admin account created. Admin rights remain pending approval.':'Admin account request created. Verify your email, then wait for the owner to approve access.');
+   else if(data.session){show(status,'Owner account created. Activating secure owner access…');await checkAdmin()}else show(status,'Owner account created. Verify info@airevo.com using the Supabase email, then sign in to activate the permanent owner account.');
   }else{
    const {error}=await s.auth.signInWithPassword({email,password});
    if(error)show(status,error.message,true);else await checkAdmin();

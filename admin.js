@@ -314,7 +314,7 @@ function mountDemoDashboard(){
  const main=$('#app main');if(!main)return;
  const nav=$('#admin-nav'),host=$('#admin-main');if(!nav||!host)return;
  const KEY='airevo_demo_admin_workspace_v1',REV_KEY='airevo_demo_customer_reviews_v1';
- const clone=x=>JSON.parse(JSON.stringify(x)),today=()=>new Date().toISOString();
+ const clone=x=>JSON.parse(JSON.stringify(x)),today=()=>new Date().toISOString(),id=prefix=>prefix+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
  const seed={
   categories:[
    {id:'cat-kitchen',name:'Kitchen Appliances',description:'Appliances for everyday cooking'},
@@ -372,7 +372,7 @@ function mountDemoDashboard(){
  });
  state.products=state.products.map(p=>({...p,costPrice:Number(p.costPrice??p.cost_price??seed.products.find(x=>x.id===p.id)?.costPrice??0),imageUrls:p.imageUrls||p.image_urls||[],videoUrl:p.videoUrl||p.video_url||'',variants:(p.variants||[]).map(v=>({...v,costPrice:Number(v.costPrice??0)}))}));
  state.blogs=state.blogs.map(b=>({...b,images:b.images||b.imageUrls||[]}));
- state.collections=state.collections.map(c=>({...c,productIds:c.productIds||[],kind:c.kind||((c.slug==='trending'||c.name.toLowerCase()==='trending')?'trending':(c.slug==='popular'||c.name.toLowerCase()==='popular')?'popular':'custom')}));
+ state.collections=state.collections.map(c=>({...c,productIds:c.productIds||[],kind:c.kind||((c.slug==='trending'||String(c.name||'').toLowerCase()==='trending')?'trending':(c.slug==='popular'||String(c.name||'').toLowerCase()==='popular')?'popular':'custom')}));
  if(!state.collections.some(c=>c.kind==='trending'||c.slug==='trending'))state.collections.unshift(clone(seed.collections[0]));
  else state.collections.forEach(c=>{if(c.kind==='trending'||c.slug==='trending'){c.name='Trending';c.slug='trending';c.kind='trending'}});
  if(!state.collections.some(c=>c.kind==='popular'||c.slug==='popular'))state.collections.splice(1,0,clone(seed.collections[1]));
@@ -382,7 +382,6 @@ function mountDemoDashboard(){
   customerReviews.forEach(r=>{if(!state.reviews.some(x=>x.id===r.id))state.reviews.unshift({...r,customer:r.customer_name||r.customer||'Customer',place:r.customer_place||r.place||'',product:r.product||r.title||'Customer order',text:r.body||r.text||'',imageUrl:r.image_url||r.imageUrl||'',status:r.status||'Pending',fromCustomer:true})});
  }catch(_){}
  let tab='overview',offlineLineCount=0;
- const id=prefix=>prefix+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
  const categoryName=catId=>state.categories.find(x=>x.id===catId)?.name||'Uncategorised';
  const productById=pid=>state.products.find(x=>x.id===pid);
  const amount=o=>(o.items||[]).reduce((n,x)=>n+Number(x.qty||0)*Number(x.unitPrice||0),0)+Number(o.shippingFee||0)-Number(o.discount||0);

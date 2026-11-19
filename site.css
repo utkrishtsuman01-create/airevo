@@ -391,3 +391,9 @@ body{background:#f4faff;color:#080b10}
 .admin-support-chat{min-width:0}
 .admin-support-chat .support-thread{height:380px;border:1px solid #dce8ee;border-radius:12px;background:#f7fbfd;margin-bottom:12px}
 @media(max-width:700px){.admin-support-layout{grid-template-columns:1fr}.admin-support-list{max-height:220px}.support-compose .btn{padding:11px 13px}.account-order-actions{min-width:140px}}
+
+/* Signed-in customer account shortcut */
+.login-link.account-icon-link{width:46px;height:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#24475d;background:#fff;border:1px solid #ccd8df;}
+.login-link.account-icon-link svg{width:21px;height:21px;display:block;}
+.login-link.account-icon-link:hover{border-color:var(--blue);color:var(--blue2);background:#f1faff;}
+.login-link.account-icon-link:focus-visible{outline:3px solid #159bd855;outline-offset:3px;}

@@ -271,12 +271,12 @@ function shell(content){
   const img=card?$('.product-photo img',card):null,variantImage=v.image_urls?.[0];
   if(img&&variantImage&&/^https?:\/\//i.test(variantImage))img.src=variantImage;
  });
- document.addEventListener('click',e=>{const b=e.target.closest('[data-add-product]');if(b){const p=S.products.find(x=>x.id===b.dataset.addProduct);if(!p)return;const card=b.closest('[data-product-card]');const sel=card?$('.variant-select',card):$('#detail-variant');const v=sel&&p.product_variants?.find(x=>x.id===sel.value);const key=v?.id||p.id;const old=S.cart.find(x=>x.key===key);if(old)old.qty++;else S.cart.push({key,product_id:p.id,variant_id:v?.id||null,name:p.name+(v?' · '+v.name:''),price:Number(v?.sale_price??p.sale_price),image:v?.image_urls?.[0]||image(p),qty:1});saveCart();renderCart();toast('Added to your basket')}});
+ // Cart actions are handled once by the guarded delegated listener below.
  renderCart();
 if(new URL(location.href).searchParams.get('checkout')==='1'){db()?.auth.getSession().then(({data})=>{if(data.session&&S.cart.length){$('#cart-drawer')?.classList.add('open');$('#checkout-modal')?.classList.add('open');$('#checkout-name').value=data.session.user.user_metadata?.full_name||'';prefillCheckout(db(),data.session.user)}})}
 }
 function syncProductCardQuantities(){
- $('.product-card[data-product-card]').forEach(card=>{
+ $('[data-product-card].product-card').forEach(card=>{
   const p=S.products.find(x=>String(x.id)===String(card.dataset.productCard));if(!p)return;
   const sel=$('.variant-select',card),v=sel&&(p.product_variants||[]).find(x=>String(x.id)===String(sel.value)),key=v?.id||p.id,item=S.cart.find(x=>String(x.key)===String(key)),actions=$('.product-actions',card);if(!actions)return;
   const control=$('[data-product-qty]',actions)?.closest('.product-qty-control'),details=$('.btn-mini',actions);

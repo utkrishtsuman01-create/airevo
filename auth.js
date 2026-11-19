@@ -26,8 +26,11 @@ function customerBoot(){
    const name=$('#auth-fullname').value.trim(),confirm=$('#auth-confirm-password').value;
    if(password!==confirm){show(status,'The passwords do not match.',true);btn.disabled=false;return}
    const {data,error}=await s.functions.invoke('customer-signup',{body:{email,password,name}});
-   if(error)show(status,error.message||'Unable to create your account.',true);
-   else if(data?.session){
+   if(error){
+    let message=error.message||'Unable to create your account.';
+    try{const detail=await error.context?.json?.();if(detail?.error)message=detail.error}catch(_){}
+    show(status,message,true);
+   }else if(data?.session){
     const {error:sessionError}=await s.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
     if(sessionError)show(status,'Your account was created, but automatic sign-in failed. Please sign in with your new account.',true);
     else{show(status,'Your Airevo account is ready. Redirecting…');redirectAfterLogin()}

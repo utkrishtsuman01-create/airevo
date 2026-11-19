@@ -1,6 +1,130 @@
 (() => {
   'use strict';
   if (document.body?.dataset.page === 'admin') return;
+  if (document.body?.dataset.page === 'account') {
+    const style = document.createElement('style');
+    style.textContent = `
+      .airevo-account-help-toggle{position:fixed;right:22px;bottom:22px;z-index:260;display:flex;align-items:center;gap:10px;padding:10px 17px 10px 10px;border:1px solid #d8e8ef;border-radius:999px;background:#fff;color:#17394d;box-shadow:0 10px 35px #0b24352b;font:800 13px/1.2 "DM Sans",sans-serif;cursor:pointer;transition:transform .2s,box-shadow .2s}
+      .airevo-account-help-toggle:hover{transform:translateY(-3px);box-shadow:0 15px 38px #0b24353b}
+      .airevo-account-help-toggle.has-unread{border-color:#159bd8;box-shadow:0 0 0 4px #75c9f244,0 12px 35px #0b24353b}
+      .airevo-account-help-icon{position:relative;width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:50%;background:#168bc5;color:#fff}
+      .airevo-account-help-icon svg{width:21px;height:21px}
+      .airevo-account-help-label{white-space:nowrap}
+      .airevo-account-help-badge{position:absolute;right:-5px;top:-5px;min-width:20px;height:20px;padding:0 5px;display:grid;place-items:center;border:2px solid #fff;border-radius:999px;background:#ed3e51;color:#fff;font:800 10px/1 "DM Sans",sans-serif}
+      .airevo-account-help-panel{position:fixed;right:22px;bottom:88px;z-index:259;width:min(390px,calc(100vw - 28px));height:min(560px,calc(100dvh - 120px));display:flex;flex-direction:column;overflow:hidden;border:1px solid #d7e6ee;border-radius:19px;background:#fff;box-shadow:0 22px 65px #0b24353b;transform-origin:bottom right;animation:airevoChatIn .18s ease-out}
+      .airevo-account-help-panel[hidden]{display:none!important}
+      @keyframes airevoChatIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+      .airevo-account-help-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 17px;background:linear-gradient(135deg,#eaf7fd,#d8effa);border-bottom:1px solid #d8e8ef;color:#17394d}
+      .airevo-account-help-head strong{display:block;font:800 15px Manrope,sans-serif}
+      .airevo-account-help-head small{display:block;margin-top:3px;color:#60798a;font-size:11px}
+      .airevo-account-help-min{width:34px;height:34px;border:0;border-radius:50%;background:#fff;color:#31566a;font-size:22px;line-height:1}
+      .airevo-account-help-panel .support-thread{flex:1;min-height:0;height:auto;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:14px;background:#f7fbfd}
+      .airevo-account-help-panel .support-message{max-width:88%;padding:10px 12px;border-radius:13px;background:#fff;border:1px solid #dce8ee}
+      .airevo-account-help-panel .support-message.mine{align-self:flex-end;background:#e6f5fd;border-color:#c3e7f7}
+      .airevo-account-help-panel .support-message.theirs{align-self:flex-start}
+      .airevo-account-help-panel .support-message small{display:block;color:#6c8391;font-size:10px;margin-bottom:5px}
+      .airevo-account-help-panel .support-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#17374c;font-size:13px}
+      .airevo-account-help-panel .support-message a{display:inline-block;margin-top:7px;color:#087db6;font-size:12px;font-weight:700}
+      .airevo-account-help-panel .support-compose{display:flex;align-items:flex-end;gap:7px;padding:12px;border-top:1px solid #dce8ee;background:#fff}
+      .airevo-account-help-panel .support-compose textarea{flex:1;min-width:0;min-height:43px;max-height:115px;resize:vertical;border:1px solid #d4e3ea;border-radius:10px;padding:10px;font:13px "DM Sans",sans-serif;background:#fff}
+      .airevo-account-help-panel .support-attach{width:39px;height:39px;flex:none;display:grid;place-items:center;border:1px solid #cfe0e8;border-radius:50%;background:#fff;color:#087db6;font-size:24px;cursor:pointer}
+      .airevo-account-help-panel .support-compose .btn{padding:11px 14px;white-space:nowrap}
+      .airevo-account-help-hint{margin:0;padding:0 13px 10px;background:#fff;color:#80919c;font-size:10px}
+      @media(max-width:560px){.airevo-account-help-toggle{right:13px;bottom:13px;padding:8px 13px 8px 8px;font-size:12px}.airevo-account-help-icon{width:37px;height:37px}.airevo-account-help-panel{right:10px;bottom:72px;width:calc(100vw - 20px);height:min(560px,calc(100dvh - 95px))}}
+    `;
+    document.head.appendChild(style);
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'airevo-account-help-toggle';
+    toggle.id = 'airevo-account-help-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'airevo-account-help-panel');
+    toggle.innerHTML = '<span class="airevo-account-help-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.6-3.2A7.5 7.5 0 1 1 20 11.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 11h8M8 14h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="airevo-account-help-badge" id="airevo-account-help-badge" hidden>0</span></span><span class="airevo-account-help-label">Need help?</span>';
+    document.body.appendChild(toggle);
+
+    const panel = document.createElement('section');
+    panel.className = 'airevo-account-help-panel';
+    panel.id = 'airevo-account-help-panel';
+    panel.hidden = true;
+    panel.setAttribute('aria-label', 'Admin Help chat');
+    panel.innerHTML = '<header class="airevo-account-help-head"><div><strong>Admin Help</strong><small>Chat directly with the Airevo owner</small></div><button type="button" class="airevo-account-help-min" id="airevo-account-help-min" aria-label="Minimize chat">−</button></header><div class="support-thread" id="customer-support-thread" aria-live="polite"><p class="form-help">Loading your conversation…</p></div><form id="customer-support-form" class="support-compose"><label class="support-attach" title="Add an attachment">＋<input type="file" id="customer-support-file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden></label><textarea id="customer-support-message" maxlength="4000" placeholder="Describe the problem…" aria-label="Message to Admin Help"></textarea><button class="btn" type="submit">Send</button></form><p class="airevo-account-help-hint">Attach an image or PDF (up to 10 MB).</p>';
+    document.body.appendChild(panel);
+
+    let client = null, userId = null, conversationId = null, channel = null, unread = 0, latestAdminAt = null;
+    const storageKey = () => 'airevo-admin-help-read-' + userId;
+    const getReadAt = () => { try { return localStorage.getItem(storageKey()) || ''; } catch (_) { return ''; } };
+    const setReadAt = value => { if (!value) return; try { localStorage.setItem(storageKey(), value); } catch (_) {} };
+    const isOpen = () => !panel.hidden;
+    const paintBadge = () => {
+      const badge = document.getElementById('airevo-account-help-badge');
+      toggle.classList.toggle('has-unread', unread > 0);
+      badge.hidden = unread < 1;
+      badge.textContent = unread > 99 ? '99+' : String(unread);
+      toggle.setAttribute('aria-label', unread ? 'Need help, ' + unread + ' unread Admin Help messages' : 'Need help');
+    };
+    const markRead = value => {
+      if (value) setReadAt(value);
+      unread = 0;
+      paintBadge();
+    };
+    const refreshThread = () => document.dispatchEvent(new CustomEvent('airevo:open-support'));
+
+    const watchConversation = async id => {
+      if (!client || !id || conversationId === id) return;
+      conversationId = id;
+      if (channel) await client.removeChannel(channel);
+      channel = client.channel('account-admin-help-' + id).on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'support_messages', filter: 'conversation_id=eq.' + id
+      }, payload => {
+        const msg = payload.new || {};
+        if (msg.sender_role === 'admin') {
+          latestAdminAt = msg.created_at || latestAdminAt;
+          if (isOpen()) markRead(latestAdminAt);
+          else if (!getReadAt() || new Date(msg.created_at) > new Date(getReadAt())) { unread += 1; paintBadge(); }
+        }
+        if (isOpen()) refreshThread();
+      }).subscribe();
+    };
+
+    const openChat = async () => {
+      panel.hidden = false;
+      toggle.setAttribute('aria-expanded', 'true');
+      markRead(latestAdminAt);
+      refreshThread();
+      document.getElementById('customer-support-message')?.focus({preventScroll:true});
+    };
+    const minimizeChat = () => {
+      panel.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.focus({preventScroll:true});
+    };
+    toggle.addEventListener('click', () => isOpen() ? minimizeChat() : openChat());
+    document.getElementById('airevo-account-help-min').addEventListener('click', minimizeChat);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) minimizeChat(); });
+
+    window.AirevoSupportWidget = { watchConversation, open: openChat, minimize: minimizeChat };
+
+    (async () => {
+      client = window.airevoSupabase;
+      if (!client) return;
+      const {data:{session}} = await client.auth.getSession();
+      if (!session?.user) return;
+      userId = session.user.id;
+      const {data:conversations} = await client.from('support_conversations').select('id').eq('customer_id', userId).order('last_message_at', {ascending:false}).limit(1);
+      const conversation = conversations?.[0];
+      if (!conversation) return;
+      await watchConversation(conversation.id);
+      const {data:messages} = await client.from('support_messages').select('created_at').eq('conversation_id', conversation.id).eq('sender_role', 'admin').order('created_at', {ascending:true});
+      if (!messages?.length) return;
+      latestAdminAt = messages[messages.length - 1].created_at;
+      const readAt = getReadAt();
+      unread = messages.filter(m => !readAt || new Date(m.created_at) > new Date(readAt)).length;
+      paintBadge();
+    })().catch(error => console.error('Airevo Admin Help notification setup failed.', error));
+    return;
+  }
+
 
   const whatsappUrl = 'https://wa.me/919836147993?text=' + encodeURIComponent('Hi Airevo, I need help.');
   const style = document.createElement('style');

@@ -357,14 +357,14 @@ async function accountPage(){
  const addr=profile?.address||{};
  const orderRows=orders.length?orders.map(o=>{
   const hasReview=!!o.customer_reviewed;
-  return '<tr><td><strong>'+esc(o.order_number)+'</strong><br><small>'+new Date(o.created_at).toLocaleDateString('en-IN')+'</small></td><td>'+money(o.grand_total)+'</td><td>'+esc(o.status)+'</td><td><div class="account-order-actions"><button class="btn-mini" data-download-bill="'+o.id+'">Download bill</button>'+(hasReview?'<span class="review-note">Review submitted</span>':'<button class="btn-mini" data-order-review="'+o.id+'">Write a review</button>')+'</div></td></tr>';
+  return '<tr><td><strong>'+esc(o.order_number)+'</strong><br><small>'+new Date(o.created_at).toLocaleDateString('en-IN')+'</small></td><td>'+money(o.grand_total)+'</td><td>'+esc(o.status)+'</td><td><div class="account-order-actions"><button class="btn-mini" data-download-bill="'+o.id+'">Download / print bill</button>'+(hasReview?'<span class="review-note">Review submitted</span>':'<button class="btn-mini" data-order-review="'+o.id+'">Write a review</button>')+'</div></td></tr>';
  }).join(''):'<tr><td colspan="4">No orders yet. Confirmed orders will appear here.</td></tr>';
  return heroHead('My account','Hello, '+esc(profile?.full_name||user.email)+'.','Manage your account, saved delivery address and order history.')+
  '<section class="section"><div class="container account-overview">'+
  '<div class="admin-panel account-details-panel"><div class="admin-panel-head"><div><h3>Account details</h3><p>Keep your details up to date for faster checkout.</p></div><button class="btn-mini" id="account-edit-toggle">Edit details</button></div>'+
  '<p><strong>Name:</strong> '+esc(profile?.full_name||user.user_metadata?.full_name||'Not added')+'</p><p><strong>Email:</strong> '+esc(user.email)+'</p><p><strong>Phone:</strong> '+esc(profile?.phone||'Not added yet')+'</p>'+
  '<p><strong>Saved address:</strong> '+esc([addr.floor,addr.street,addr.landmark,addr.city,addr.pincode,addr.state].filter(Boolean).join(', ')||'No address saved')+'</p>'+
- '<button class="btn-mini" id="account-signout">Sign out</button></div>'+
+ '</div>'+
  '<div class="admin-panel" id="account-edit-panel" hidden><h3>Edit account details</h3><div id="account-edit-status" class="status-message"></div>'+
  '<form id="account-profile-form"><div class="admin-form-grid">'+
  '<div class="field"><label>Full name</label><input name="full_name" maxlength="120" required value="'+esc(profile?.full_name||user.user_metadata?.full_name||'')+'"></div>'+

@@ -510,7 +510,7 @@ function productImages(){
   $('#product-main-image').src=images[0]||image(p);bindThumbs();
  });
 }
-async async function syncHeaderAuth(){const s=db();if(!s)return;const {data}=await s.auth.getSession();const link=$('.login-link');if(link){if(data.session){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await s.auth.signOut();location.href='/login.html'}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null}}}
+async function syncHeaderAuth(){const s=db();if(!s)return;const {data}=await s.auth.getSession();const link=$('.login-link');if(link){if(data.session){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await s.auth.signOut();location.href='/login.html'}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null}}}
 async function render(){
  const loadTask=load();
  let content='';

@@ -377,9 +377,9 @@ async function accountPage(){
  '<div class="field"><label>PIN code</label><input name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="'+esc(addr.pincode||'')+'" required></div>'+
  '<div class="field"><label>State</label><input name="state" maxlength="100" value="'+esc(addr.state||'West Bengal')+'" required></div>'+
  '</div><button class="btn" type="submit">Save details</button></form>'+
- '<div class="account-security-block"><h4>Change email address</h4><p>A verification code will be sent by Supabase to confirm your new email.</p>'+
+ '<div class="account-security-block"><h4>Change email address</h4><p>Supabase will send a confirmation email to your new address. Open its verification link to complete the change.</p>'+
  '<form id="account-email-form"><div class="field"><label>New email address</label><input name="email" type="email" required></div><button class="btn-mini" type="submit">Send verification</button></form>'+
- '<form id="account-email-verify-form" hidden><div class="field"><label>Verification code</label><input name="token" inputmode="numeric" autocomplete="one-time-code" required></div><button class="btn-mini" type="submit">Verify new email</button></form></div>'+
+ '</div>'+
  '<div class="account-security-block"><h4>Change password</h4><form id="account-password-form"><div class="admin-form-grid"><div class="field"><label>Current password</label><input name="current" type="password" required autocomplete="current-password"></div><div class="field"><label>New password</label><input name="next" type="password" minlength="8" required autocomplete="new-password"></div><div class="field"><label>Confirm new password</label><input name="confirm" type="password" minlength="8" required autocomplete="new-password"></div></div><button class="btn-mini" type="submit">Update password</button></form></div></div>'+
  '<div class="admin-panel"><div class="admin-panel-head"><div><h3>My orders</h3><p>Review an order or download its bill whenever you need it.</p></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order / date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+orderRows+'</tbody></table></div></div>'+
  '<div class="admin-panel"><div class="admin-panel-head"><div><h3>Admin Help</h3><p>Chat directly with the Airevo owner about an order or any issue.</p></div><button class="btn" id="customer-open-support">Open chat</button></div><div id="customer-support-box" class="customer-support-box" hidden><div class="support-thread" id="customer-support-thread"><p class="form-help">Loading your conversation…</p></div><form id="customer-support-form" class="support-compose"><label class="support-attach" title="Add an attachment">＋<input type="file" id="customer-support-file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden></label><textarea id="customer-support-message" maxlength="4000" placeholder="Describe the problem…" aria-label="Message to Admin Help"></textarea><button class="btn" type="submit">Send</button></form><p class="form-help">You can attach an image or PDF (up to 10 MB).</p></div></div>'+
@@ -389,7 +389,7 @@ async function bindAccount(){
  const s=db();if(!s)return;const {data:{session}}=await s.auth.getSession();const user=session?.user;if(!user)return;
  const status=$('#account-edit-status'),panel=$('#account-edit-panel');
  $('#account-edit-toggle')?.addEventListener('click',()=>{panel.hidden=!panel.hidden;$('#account-edit-toggle').textContent=panel.hidden?'Edit details':'Close editor'});
- $('#account-signout')?.addEventListener('click',async()=>{await s.auth.signOut();location.href='/'});
+ 
  $('#account-profile-form')?.addEventListener('submit',async e=>{
   e.preventDefault();const fd=new FormData(e.currentTarget),btn=e.currentTarget.querySelector('button[type=submit]');btn.disabled=true;
   const payload={full_name:String(fd.get('full_name')||'').trim(),phone:String(fd.get('phone')||'').trim(),address:{floor:String(fd.get('floor')||'').trim(),street:String(fd.get('street')||'').trim(),landmark:String(fd.get('landmark')||'').trim(),city:String(fd.get('city')||'').trim(),pincode:String(fd.get('pincode')||'').trim(),state:String(fd.get('state')||'').trim()},updated_at:new Date().toISOString()};
@@ -402,10 +402,6 @@ async function bindAccount(){
   if(error){showAccountStatus(status,error.message,true);return}
   $('#account-email-verify-form').hidden=false;showAccountStatus(status,'Verification email requested. Enter the code sent to the new address.');
  });
- $('#account-email-verify-form')?.addEventListener('submit',async e=>{
-  e.preventDefault();const token=new FormData(e.currentTarget).get('token').trim();const {error}=await s.auth.verifyOtp({email:$('#account-email-form [name=email]').value.trim(),token,type:'email_change'});
-  if(error)showAccountStatus(status,error.message,true);else{showAccountStatus(status,'Email updated successfully.');setTimeout(()=>location.reload(),700)}
- });
  $('#account-password-form')?.addEventListener('submit',async e=>{
   e.preventDefault();const fd=new FormData(e.currentTarget),current=String(fd.get('current')),next=String(fd.get('next')),confirm=String(fd.get('confirm'));
   if(next!==confirm){showAccountStatus(status,'New passwords do not match.',true);return}
@@ -416,7 +412,7 @@ async function bindAccount(){
  });
  $('#customer-open-support')?.addEventListener('click',async()=>{const box=$('#customer-support-box');box.hidden=!box.hidden;if(!box.hidden)await loadCustomerSupport(s,user)});
  $('#customer-support-form')?.addEventListener('submit',async e=>{
-  e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type=submit'),message=$('#customer-support-message').value.trim(),file=$('#customer-support-file').files[0];if(!message&&!file)return;
+  e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type=submit]'),message=$('#customer-support-message').value.trim(),file=$('#customer-support-file').files[0];if(!message&&!file)return;
   btn.disabled=true;
   try{
    let conversation=window.airevoSupportConversationId;

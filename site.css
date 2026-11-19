@@ -361,3 +361,6 @@ body{background:#f4faff;color:#080b10}
 .settings-danger{border:1px solid #e8c5c5!important;background:linear-gradient(135deg,#fffafa,#fff)!important}
 .settings-danger h3{color:#9c3333}
 .settings-danger button.secondary{border-color:#dca7a7;color:#9c3333;background:#fff5f5}
+
+/* Ensure native hidden states always win over component display rules. */
+[hidden]{display:none!important}

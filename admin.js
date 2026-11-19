@@ -657,10 +657,6 @@ function mountDemoDashboard(){
    const o=state.orders.find(x=>x.id===$('#demo-editor').dataset.orderId);if(!o)return;const v=num('return-amount');if(v<0||v>amount(o)){toast('Enter a return amount within the original bill total.');return}
    o.returnAmount=v;o.returnReason=val('return-reason');o.status=v>=amount(o)?'Returned':v>0?'Partially returned':o.status;o.payment=v>0?'Refunded':o.payment;save('Return recorded. Revenue and profit totals recalculated.');render();return;
   }
-  if(form.id==='demo-blog-form'){
-   const payload={id:edit||id('blog'),title:val('blog-title'),slug:val('blog-slug'),excerpt:val('blog-excerpt'),body:val('blog-body'),images:state.blogs.find(x=>x.id===edit)?.images||[],status:val('blog-status')};
-   if(!payload.title||!payload.slug){toast('Post title and URL slug are required.');return}if(edit)state.blogs=state.blogs.map(x=>x.id===edit?payload:x);else state.blogs.unshift(payload);save(edit?'Blog post updated.':'Blog post created.');render();return;
-  }
  };
  $('#admin-nav [data-action="reset-demo"]')?.addEventListener('click',()=>{});
  setTab('overview');

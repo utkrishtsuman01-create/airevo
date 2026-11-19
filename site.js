@@ -68,16 +68,16 @@ function applyDemoWorkspaceToStorefront(){
  const categoryMap=new Map((demo.categories||[]).map(x=>[x.id,x]));
  (demo.categories||[]).forEach(c=>{if(!S.categories.some(x=>x.name===c.name))S.categories.push({id:c.id,name:c.name,slug:slugify(c.name),description:c.description||'',is_active:true})});
  const trending=demo.collections?.find(x=>x.kind==='trending'||x.slug==='trending'),popular=demo.collections?.find(x=>x.kind==='popular'||x.slug==='popular');
- const trendingIds=trending?.productIds||[],popularIds=popular?.productIds||[];
+ const trendingIds=trending?.productIds||[],popularIds=popular?.productIds||[],demoProductIdMap=new Map();
  (demo.products||[]).forEach(p=>{
   const cat=categoryMap.get(p.categoryId),safeVariants=(p.variants||[]).map(v=>({id:v.id,name:v.name,sku:v.sku,mrp:v.price,sale_price:v.price,stock_qty:v.stock,is_active:true}));
   const item={id:p.id,slug:slugify(p.name),name:p.name,sku:p.sku,brand:'Airevo',mrp:Number(p.mrp||0),sale_price:Number(p.price||0),stock_qty:Number(p.stock||0),short_description:p.description||'',description:p.description||'',image_urls:(p.imageUrls||[]).slice(0,5),video_url:p.videoUrl||'',specifications:{video_url:p.videoUrl||''},product_variants:safeVariants,categories:cat?{name:cat.name,slug:slugify(cat.name)}:null,is_active:p.active!==false,is_trending:trendingIds.includes(p.id),is_popular:popularIds.includes(p.id),is_featured:false};
   const index=S.products.findIndex(x=>(p.sku&&x.sku===p.sku)||x.name===p.name);
-  if(index>=0){if(p.active===false)S.products.splice(index,1);else S.products[index]={...S.products[index],...item,id:S.products[index].id,category_id:S.products[index].category_id||p.categoryId}}
-  else if(p.active!==false)S.products.push(item);
+  if(index>=0){if(p.active===false)S.products.splice(index,1);else{const existingId=S.products[index].id;S.products[index]={...S.products[index],...item,id:existingId,category_id:S.products[index].category_id||p.categoryId};demoProductIdMap.set(p.id,existingId)}}
+  else if(p.active!==false){S.products.push(item);demoProductIdMap.set(p.id,p.id)}
  });
  (demo.collections||[]).forEach(co=>{
-  const item={id:co.id,name:co.name,slug:co.slug||slugify(co.name),description:co.description||'',image_url:null,is_active:co.active!==false,sort_order:0,collection_products:(co.productIds||[]).map((product_id,i)=>({collection_id:co.id,product_id,sort_order:i}))};
+  const item={id:co.id,name:co.name,slug:co.slug||slugify(co.name),description:co.description||'',image_url:null,is_active:co.active!==false,sort_order:0,collection_products:(co.productIds||[]).map((product_id,i)=>({collection_id:co.id,product_id:demoProductIdMap.get(product_id)||product_id,sort_order:i}))};
   const ix=S.collections.findIndex(x=>x.slug===item.slug);
   if(ix>=0)S.collections[ix]=item;else S.collections.push(item);
  });

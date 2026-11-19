@@ -428,7 +428,7 @@ function mountDemoDashboard(){
  const button=(action,label,idValue,secondary)=>'<button type="button" data-action="'+action+'" data-id="'+esc(idValue||'')+'" '+(secondary?'class="secondary"':'')+'>'+label+'</button>';
  const actions=items=>'<div class="hero-buttons" style="gap:7px;flex-wrap:wrap">'+items+'</div>';
  const editor=(title,body)=>'<div class="admin-panel" id="demo-editor"><div class="admin-panel-head"><h3>'+title+'</h3>'+button('editor-close','Close')+'</div>'+body+'</div>';
- const setTab=next=>{tab=next;$('#admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));render()};
+ const setTab=next=>{tab=next;$$('#admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));render()};
  const renderSettings=()=>{
   host.innerHTML='<div class="admin-panel"><h3>Admin settings</h3><p>Manage your own administrator account. Password changes are applied to the currently signed-in Supabase account.</p><form id="settings-password-form"><div class="admin-form-grid">'+
    '<div class="field"><label for="settings-current-password">Current password</label><input id="settings-current-password" name="currentPassword" type="password" autocomplete="current-password" required></div>'+

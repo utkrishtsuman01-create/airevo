@@ -370,9 +370,13 @@ function mountDemoDashboard(){
   const base=seed.orders.find(x=>x.orderNo===o.id||x.orderNo===o.orderNo);
   return base?clone(base):{id:o.id||id('ord'),orderNo:o.orderNo||o.id,date:o.date||today(),source:'Online',customerName:o.customer||'Sample customer',email:'',phone:'',address:'',status:o.status||'Pending',payment:o.payment||'Pending',paymentMethod:'Demo',shippingFee:0,discount:0,returnAmount:0,items:[]};
  });
- state.products=state.products.map(p=>({...p,costPrice:Number(p.costPrice??p.cost_price??0),imageUrls:p.imageUrls||p.image_urls||[],videoUrl:p.videoUrl||p.video_url||'',variants:(p.variants||[]).map(v=>({...v,costPrice:Number(v.costPrice??0)}))}));
+ state.products=state.products.map(p=>({...p,costPrice:Number(p.costPrice??p.cost_price??seed.products.find(x=>x.id===p.id)?.costPrice??0),imageUrls:p.imageUrls||p.image_urls||[],videoUrl:p.videoUrl||p.video_url||'',variants:(p.variants||[]).map(v=>({...v,costPrice:Number(v.costPrice??0)}))}));
  state.blogs=state.blogs.map(b=>({...b,images:b.images||b.imageUrls||[]}));
- state.collections=state.collections.map(c=>({...c,productIds:c.productIds||[],kind:c.kind||'custom'}));
+ state.collections=state.collections.map(c=>({...c,productIds:c.productIds||[],kind:c.kind||((c.slug==='trending'||c.name.toLowerCase()==='trending')?'trending':(c.slug==='popular'||c.name.toLowerCase()==='popular')?'popular':'custom')}));
+ if(!state.collections.some(c=>c.kind==='trending'||c.slug==='trending'))state.collections.unshift(clone(seed.collections[0]));
+ else state.collections.forEach(c=>{if(c.kind==='trending'||c.slug==='trending'){c.name='Trending';c.slug='trending';c.kind='trending'}});
+ if(!state.collections.some(c=>c.kind==='popular'||c.slug==='popular'))state.collections.splice(1,0,clone(seed.collections[1]));
+ else state.collections.forEach(c=>{if(c.kind==='popular'||c.slug==='popular'){c.name='Popular';c.slug='popular';c.kind='popular'}});
  try{
   const customerReviews=JSON.parse(localStorage.getItem(REV_KEY)||'[]');
   customerReviews.forEach(r=>{if(!state.reviews.some(x=>x.id===r.id))state.reviews.unshift({...r,customer:r.customer_name||r.customer||'Customer',place:r.customer_place||r.place||'',product:r.product||r.title||'Customer order',text:r.body||r.text||'',imageUrl:r.image_url||r.imageUrl||'',status:r.status||'Pending',fromCustomer:true})});

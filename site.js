@@ -262,7 +262,7 @@ function shell(content){
  });
  document.addEventListener('click',e=>{const b=e.target.closest('[data-add-product]');if(b){const p=S.products.find(x=>x.id===b.dataset.addProduct);if(!p)return;const card=b.closest('[data-product-card]');const sel=card?$('.variant-select',card):$('#detail-variant');const v=sel&&p.product_variants?.find(x=>x.id===sel.value);const key=v?.id||p.id;const old=S.cart.find(x=>x.key===key);if(old)old.qty++;else S.cart.push({key,product_id:p.id,variant_id:v?.id||null,name:p.name+(v?' · '+v.name:''),price:Number(v?.sale_price??p.sale_price),image:v?.image_urls?.[0]||image(p),qty:1});saveCart();renderCart();toast('Added to your basket')}});
  renderCart();
-if(new URL(location.href).searchParams.get('checkout')==='1'){db()?.auth.getSession().then(({data})=>{if(data.session&&S.cart.length){$('#cart-drawer')?.classList.add('open');$('#checkout-modal')?.classList.add('open');$('#checkout-name').value=data.session.user.user_metadata?.full_name||''}})}
+if(new URL(location.href).searchParams.get('checkout')==='1'){db()?.auth.getSession().then(({data})=>{if(data.session&&S.cart.length){$('#cart-drawer')?.classList.add('open');$('#checkout-modal')?.classList.add('open');$('#checkout-name').value=data.session.user.user_metadata?.full_name||'';prefillCheckout(db(),data.session.user)}})}
 }
 function renderCart(){const rows=$('#drawer-items');if(!rows)return;$('#cart-count').textContent=qty();$('#drawer-count').textContent='('+qty()+')';$('#drawer-total').textContent=money(total());$('#drawer-foot').style.display=S.cart.length?'block':'none';rows.innerHTML=S.cart.length?S.cart.map(x=>'<div class="drawer-row"><img src="'+esc(x.image)+'" alt=""><div><strong>'+esc(x.name)+'</strong><small>'+money(x.price)+' each</small><div class="cart-qty"><button data-cart-qty="'+esc(x.key)+'" data-step="-1">−</button><span>'+x.qty+'</span><button data-cart-qty="'+esc(x.key)+'" data-step="1">+</button></div></div><div><b>'+money(x.price*x.qty)+'</b><button class="remove-cart" data-cart-remove="'+esc(x.key)+'">Remove</button></div></div>').join(''):'<div class="empty-state"><h3>Your basket is empty.</h3><p>Explore the Airevo catalogue and add an appliance.</p></div>'}
 async function prefillCheckout(s,user){const {data}=await s.from('profiles').select('phone,address,full_name').eq('id',user.id).maybeSingle();const a=data?.address||{};if($('#checkout-name')&&!$('#checkout-name').value)$('#checkout-name').value=data?.full_name||user.user_metadata?.full_name||'';$('#checkout-phone').value=data?.phone||'';$('#checkout-floor').value=a.floor||'';$('#checkout-address').value=a.street||'';$('#checkout-landmark').value=a.landmark||'';$('#checkout-city').value=a.city||'';$('#checkout-state').value=a.state||'';$('#checkout-pin').value=a.pincode||''}
@@ -413,7 +413,6 @@ async function bindAccount(){
   if(reauthError){showAccountStatus(status,'Current password is incorrect.',true);btn.disabled=false;return}
   const {error}=await s.auth.updateUser({password:next});showAccountStatus(status,error?.message||'Password changed successfully.',!!error);if(!error)e.currentTarget.reset();btn.disabled=false;
  });
- $('#account-open-support')?.click();
  $('#customer-open-support')?.addEventListener('click',async()=>{const box=$('#customer-support-box');box.hidden=!box.hidden;if(!box.hidden)await loadCustomerSupport(s,user)});
  $('#customer-support-form')?.addEventListener('submit',async e=>{
   e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type=submit'),message=$('#customer-support-message').value.trim(),file=$('#customer-support-file').files[0];if(!message&&!file)return;
@@ -511,7 +510,7 @@ function productImages(){
   $('#product-main-image').src=images[0]||image(p);bindThumbs();
  });
 }
-async function syncHeaderAuth(){const s=db();if(!s)return;const {data}=await s.auth.getSession();const link=$('.login-link');if(link){if(data.session){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await s.auth.signOut();location.href='/login.html'}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null}}}
+async async function syncHeaderAuth(){const s=db();if(!s)return;const {data}=await s.auth.getSession();const link=$('.login-link');if(link){if(data.session){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await s.auth.signOut();location.href='/login.html'}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null}}}
 async function render(){
  const loadTask=load();
  let content='';

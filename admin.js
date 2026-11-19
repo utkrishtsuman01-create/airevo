@@ -329,7 +329,7 @@ function mountDemoDashboard(){
  inquiries:'<div class="admin-panel"><h3>Enquiries</h3><p>Sample enquiry inbox · real customer messages are not accessible in demo mode.</p><p>Product availability question — Sample record</p><p>Bulk purchase enquiry — Sample record</p></div>'
  };
  function showTab(tab){
-  $('#admin-nav [data-demo-tab]').forEach(b=>b.classList.toggle('active',b.dataset.demoTab===tab));
+  $$('#admin-nav [data-demo-tab]').forEach(b=>b.classList.toggle('active',b.dataset.demoTab===tab));
   hostMain.innerHTML='<div class="demo-note"><strong>DEMO MODE · READ ONLY</strong> — Sample data only. Authentication and live admin access are preserved for later activation.</div>'+(views[tab]||views.overview);
  }
  $('#admin-nav').onclick=e=>{const b=e.target.closest('[data-demo-tab]');if(b)showTab(b.dataset.demoTab)};

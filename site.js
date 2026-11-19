@@ -40,9 +40,17 @@ async function load(){
    s.from('products').select('*,categories(name,slug),product_variants(*)').eq('is_active',true).order('created_at',{ascending:false}),
    s.from('blog_posts').select('*').eq('status','published').order('published_at',{ascending:false}).limit(6),
    s.from('collections').select('*,collection_products(collection_id,product_id,sort_order)').eq('is_active',true).order('sort_order')
-  ]).then(([c,p,b,co])=>{
+  ]).then(async([c,p,b,co])=>{
    if(!c.error)S.categories=c.data||[];
-   if(!p.error)S.products=p.data||[];
+   let products=!p.error&&Array.isArray(p.data)?p.data:[];
+   // Demo resilience: if the joined catalogue request fails or returns empty, retry the base products query.
+   if(p.error||!products.length){
+    console.warn('Airevo joined product query unavailable; retrying base catalogue query.',p.error);
+    const fallback=await s.from('products').select('*').eq('is_active',true).order('created_at',{ascending:false});
+    if(!fallback.error&&Array.isArray(fallback.data))products=fallback.data;
+    else console.error('Airevo base product query failed.',fallback.error);
+   }
+   S.products=products;
    if(!b.error)S.blogs=b.data||[];
    if(!co.error)S.collections=co.data||[];
    applyDemoWorkspaceToStorefront();
@@ -125,8 +133,9 @@ function articleCards(items){
  return '<div class="article-grid">'+items.map(b=>'<a class="article-card" href="/blog-post.html?slug='+encodeURIComponent(b.slug)+'"><img src="'+esc(b.cover_image_url||IMG.oven)+'" alt="'+esc(b.title)+'" loading="lazy"><div><small>Airevo journal · Buying guide</small><h3>'+esc(b.title)+'</h3><p>'+esc(b.excerpt||'')+'</p><span class="textlink">Read article ↗</span></div></a>').join('')+'</div>';
 }
 async function home(){
- const trending=S.products.filter(p=>p.is_trending).slice(0,5);
- const popular=S.products.filter(p=>p.is_popular).slice(0,5);
+ const activeProducts=S.products.filter(p=>p.is_active!==false);
+ const trending=(activeProducts.filter(p=>p.is_trending).length?activeProducts.filter(p=>p.is_trending):activeProducts).slice(0,5);
+ const popular=(activeProducts.filter(p=>p.is_popular).length?activeProducts.filter(p=>p.is_popular):activeProducts).slice(0,5);
  let approvedReviews=[];
  try{
   const sr=db();

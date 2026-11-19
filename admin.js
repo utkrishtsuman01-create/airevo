@@ -409,7 +409,7 @@ function mountDemoDashboard(){
   const recognized=state.orders.filter(recognised),gross=recognized.reduce((n,o)=>n+amount(o),0),returns=recognized.reduce((n,o)=>n+Number(o.returnAmount||0),0),cogs=recognized.reduce((n,o)=>n+cost(o),0);
   rows.push([]);rows.push(['TOTALS','Gross sales',gross,'Returns',returns,'Cost of goods sold',cogs,'Net revenue',gross-returns,'Gross profit',gross-returns-cogs]);
   const csv='\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n');
-  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})),a=document.createElement('a');a.href=url;a.download='airevo-sales-returns-profit-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})),a=document.createElement('a');a.href=url;a.download='airevo-sales-returns-profit-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
   toast('Excel-compatible sales and returns sheet downloaded.');
  };
  const printBill=o=>{
@@ -656,11 +656,11 @@ function mountDemoDashboard(){
    const lines=Array.from($('#offline-lines').querySelectorAll('.offline-line')).map(row=>{const p=productById(row.querySelector('[data-offline-product]').value),qty=Number(row.querySelector('[data-offline-qty]').value);if(!p||qty<1)throw new Error('Choose a valid product and quantity.');return {productId:p.id,name:p.name,sku:p.sku,qty,unitPrice:Number(p.price),unitCost:Number(p.costPrice)}}).filter(x=>x.qty>0);
    if(!lines.length){toast('Add at least one product to the bill.');return}
    const subtotal=lines.reduce((n,x)=>n+x.qty*x.unitPrice,0),o={id:id('ord'),orderNo:'ARV-OFF-'+Date.now().toString().slice(-8),date:today(),source:'Offline',customerName:val('offline-name')||'Walk-in customer',email:val('offline-email'),phone:val('offline-phone'),address:val('offline-address'),status:'Completed',payment:'Paid',paymentMethod:val('offline-payment'),shippingFee:0,discount:0,returnAmount:0,returnReason:'',items:lines};
-   state.orders.unshift(o);lines.forEach(x=>{const p=productById(x.productId);if(p)p.stock=Math.max(0,Number(p.stock)-x.qty)});save('Offline bill created and added to sales.');renderOrders();setTimeout(()=>{const last=state.orders[0];if(last)printBill(last)},100);return;
+   state.orders.unshift(o);lines.forEach(x=>{const p=productById(x.productId);if(p)p.stock=Math.max(0,Number(p.stock)-x.qty)});save('Offline bill created and added to sales. Use Print bill in the order list.');setTab('orders');return;
   }
   if(form.id==='return-form'){
    const o=state.orders.find(x=>x.id===$('#demo-editor').dataset.orderId);if(!o)return;const v=num('return-amount');if(v<0||v>amount(o)){toast('Enter a return amount within the original bill total.');return}
-   o.returnAmount=v;o.returnReason=val('return-reason');o.status=v>=amount(o)?'Returned':v>0?'Partially returned':o.status;o.payment=v>0?'Refunded':o.payment;save('Return recorded. Revenue and profit totals recalculated.');render();return;
+   o.returnAmount=v;o.returnReason=val('return-reason');o.status=v>=amount(o)?'Returned':v>0?'Partially returned':(o.source==='Offline'?'Completed':'Delivered');o.payment=v>0?'Refunded':'Paid';save('Return recorded. Revenue and profit totals recalculated.');render();return;
   }
  };
  $('#admin-nav [data-action="reset-demo"]')?.addEventListener('click',()=>{});

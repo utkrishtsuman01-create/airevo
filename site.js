@@ -45,6 +45,7 @@ async function load(){
    if(!p.error)S.products=p.data||[];
    if(!b.error)S.blogs=b.data||[];
    if(!co.error)S.collections=co.data||[];
+   applyDemoWorkspaceToStorefront();
    S.dataLoaded=true;
    return true;
   }).catch(error=>{
@@ -60,6 +61,31 @@ const gallery=p=>(p.image_urls||[]).slice(0,5);
 function qty(){return S.cart.reduce((n,x)=>n+x.qty,0)}
 function total(){return S.cart.reduce((n,x)=>n+x.price*x.qty,0)}
 function saveCart(){localStorage.setItem('airevo-cart-v2',JSON.stringify(S.cart))}
+function applyDemoWorkspaceToStorefront(){
+ let demo;try{demo=JSON.parse(localStorage.getItem('airevo_demo_admin_workspace_v1')||'null')}catch(_){demo=null}
+ if(!demo)return;
+ const slugify=v=>String(v||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ const categoryMap=new Map((demo.categories||[]).map(x=>[x.id,x]));
+ (demo.categories||[]).forEach(c=>{if(!S.categories.some(x=>x.name===c.name))S.categories.push({id:c.id,name:c.name,slug:slugify(c.name),description:c.description||'',is_active:true})});
+ const trending=demo.collections?.find(x=>x.kind==='trending'||x.slug==='trending'),popular=demo.collections?.find(x=>x.kind==='popular'||x.slug==='popular');
+ const trendingIds=trending?.productIds||[],popularIds=popular?.productIds||[];
+ (demo.products||[]).forEach(p=>{
+  const cat=categoryMap.get(p.categoryId),safeVariants=(p.variants||[]).map(v=>({id:v.id,name:v.name,sku:v.sku,mrp:v.price,sale_price:v.price,stock_qty:v.stock,is_active:true}));
+  const item={id:p.id,slug:slugify(p.name),name:p.name,sku:p.sku,brand:'Airevo',mrp:Number(p.mrp||0),sale_price:Number(p.price||0),stock_qty:Number(p.stock||0),short_description:p.description||'',description:p.description||'',image_urls:(p.imageUrls||[]).slice(0,5),video_url:p.videoUrl||'',specifications:{video_url:p.videoUrl||''},product_variants:safeVariants,categories:cat?{name:cat.name,slug:slugify(cat.name)}:null,is_active:p.active!==false,is_trending:trendingIds.includes(p.id),is_popular:popularIds.includes(p.id),is_featured:false};
+  const index=S.products.findIndex(x=>(p.sku&&x.sku===p.sku)||x.name===p.name);
+  if(index>=0){if(p.active===false)S.products.splice(index,1);else S.products[index]={...S.products[index],...item,id:S.products[index].id,category_id:S.products[index].category_id||p.categoryId}}
+  else if(p.active!==false)S.products.push(item);
+ });
+ (demo.collections||[]).forEach(co=>{
+  const item={id:co.id,name:co.name,slug:co.slug||slugify(co.name),description:co.description||'',image_url:null,is_active:co.active!==false,sort_order:0,collection_products:(co.productIds||[]).map((product_id,i)=>({collection_id:co.id,product_id,sort_order:i}))};
+  const ix=S.collections.findIndex(x=>x.slug===item.slug);
+  if(ix>=0)S.collections[ix]=item;else S.collections.push(item);
+ });
+ (demo.blogs||[]).filter(b=>b.status==='Published').forEach(b=>{
+  const item={id:b.id,title:b.title,slug:b.slug,excerpt:b.excerpt||'',content:b.body||'',cover_image_url:(b.images||[])[0]||null,image_urls:(b.images||[]).slice(0,5),status:'published',published_at:new Date().toISOString()};
+  const ix=S.blogs.findIndex(x=>x.slug===item.slug);if(ix>=0)S.blogs[ix]=item;else S.blogs.unshift(item);
+ });
+}
 function header(){
  const cats=S.categories.length?S.categories.map(c=>'<a href="/category.html?slug='+encodeURIComponent(c.slug)+'">'+esc(c.name)+'</a>').join(''):['Kitchen Chimneys','Microwave Ovens','Hobs & Cooktops','Built-in Ovens','Dishwashers','Air Fryers & Small Appliances'].map((n,i)=>'<a href="/category.html">'+n+'</a>').join('');
  return '<div class="topline"><div class="container topline-inner"><div class="contact-mini"><a href="tel:+919836147993"><span aria-hidden="true">☎</span> '+phone+'</a><a href="mailto:'+email+'"><span aria-hidden="true">✉</span> '+email+'</a></div><div class="topline-right"><div class="topline-socials"><a href="https://www.instagram.com/" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></svg></a><a href="https://www.facebook.com/" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H7.6V13h2.7v8z"/></svg></a></div><div class="topline-note">Thoughtfully selected. Beautifully made.</div></div></div></div>'+

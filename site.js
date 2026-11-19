@@ -402,7 +402,9 @@ async function accountPage(){
  const addr=profile?.address||{};
  const orderRows=orders.length?orders.map(o=>{
   const hasReview=!!o.customer_reviewed;
-  return '<tr><td><strong>'+esc(o.order_number)+'</strong><br><small>'+new Date(o.created_at).toLocaleDateString('en-IN')+'</small></td><td>'+money(o.grand_total)+'</td><td>'+esc(o.status)+'</td><td><div class="account-order-actions"><button class="btn-mini" data-download-bill="'+o.id+'">Download / print bill</button>'+(hasReview?'<span class="review-note">Review submitted</span>':'<button class="btn-mini" data-order-review="'+o.id+'">Write a review</button>')+'</div></td></tr>';
+  const orderLine='<tr><td><strong>'+esc(o.order_number)+'</strong><br><small>'+new Date(o.created_at).toLocaleDateString('en-IN')+'</small></td><td>'+money(o.grand_total)+'</td><td>'+esc(o.status)+'</td><td><div class="account-order-actions"><button class="btn-mini" data-download-bill="'+o.id+'">Download / print bill</button>'+(hasReview?'<span class="review-note">Review submitted</span>':'')+'</div></td></tr>';
+  const reviewLine=hasReview?'':'<tr class="order-review-row"><td colspan="4"><div class="order-review-inline" data-order-review="'+o.id+'"><strong>Rate your order</strong><div class="order-review-stars" role="group" aria-label="Choose a star rating">'+[1,2,3,4,5].map(n=>'<button type="button" class="order-review-star" data-review-star="'+n+'" aria-label="'+n+' star'+(n===1?'':'s')+'" aria-pressed="false">★</button>').join('')+'</div><form class="order-review-form" data-review-form="'+o.id+'" hidden><div class="field"><label>Your experience <span class="form-help">(optional)</span></label><textarea name="body" maxlength="4000" rows="4" placeholder="Tell us about your experience…"></textarea></div><div class="field"><label>Add a photo <span class="form-help">(optional · 1 image maximum)</span></label><input type="file" name="review_image" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG or WEBP · maximum 5 MB</small><div class="review-image-preview" data-review-preview></div></div><div class="status-message" data-review-status></div><button class="btn" type="submit" disabled>Submit review</button></form></div></td></tr>';
+  return orderLine+reviewLine;
  }).join(''):'<tr><td colspan="4">No orders yet. Confirmed orders will appear here.</td></tr>';
  return heroHead('My account','Hello, '+esc(profile?.full_name||user.email)+'.','Manage your account, saved delivery address and order history.')+
  '<section class="section"><div class="container account-overview">'+
@@ -469,7 +471,21 @@ async function bindAccount(){
   }catch(err){toast(err.message||'Unable to send your message')}finally{btn.disabled=false}
  });
  $$('[data-download-bill]').forEach(b=>b.addEventListener('click',()=>{const o=window.AirevoAccountOrders?.find(x=>x.id===b.dataset.downloadBill);if(o)downloadCustomerBill(o)}));
- $$('[data-order-review]').forEach(b=>b.addEventListener('click',()=>openOrderReview(s,user,b.dataset.orderReview)));
+ $$('.order-review-inline').forEach(host=>{
+  const stars=$$('.order-review-star',host),form=$('.order-review-form',host);
+  stars.forEach(star=>star.addEventListener('click',()=>{
+   const rating=Number(star.dataset.reviewStar);host.dataset.selectedRating=String(rating);
+   stars.forEach(x=>{const active=Number(x.dataset.reviewStar)<=rating;x.classList.toggle('selected',active);x.setAttribute('aria-pressed',String(Number(x.dataset.reviewStar)===rating))});
+   form.hidden=false;form.querySelector('button[type="submit"]').disabled=false;
+  }));
+  const file=form?.elements.review_image,preview=$('[data-review-preview]',form);
+  file?.addEventListener('change',()=>{
+   preview.innerHTML='';const chosen=file.files?.[0];if(!chosen)return;
+   if(!['image/jpeg','image/png','image/webp'].includes(chosen.type)||chosen.size>5242880){file.value='';showAccountStatus($('[data-review-status]',form),'Choose one JPG, PNG or WEBP image up to 5 MB.',true);return}
+   const img=document.createElement('img');img.alt='Selected review image preview';img.src=URL.createObjectURL(chosen);preview.appendChild(img);
+  });
+  form?.addEventListener('submit',e=>{e.preventDefault();submitInlineOrderReview(s,user,form.dataset.reviewForm,form)});
+ });
  window.AirevoAccountOrders=window.AirevoAccountOrders||[];
 }
 function showAccountStatus(el,message,error=false){if(!el)return;el.textContent=message;el.className='status-message show'+(error?' error':'')}
@@ -491,11 +507,23 @@ function downloadCustomerBill(o){
  const html='<!doctype html><html><head><meta charset="utf-8"><title>Airevo bill '+esc(o.order_number)+'</title><style>body{font:14px Arial;padding:36px;color:#172b3a}h1{color:#168bc5}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{text-align:left;padding:12px;border-bottom:1px solid #dce6eb}.total{text-align:right;font-size:20px;font-weight:bold;margin-top:20px}</style></head><body><h1>Airevo</h1><b>Order bill</b><p>Order: '+esc(o.order_number)+'<br>Date: '+new Date(o.created_at).toLocaleString('en-IN')+'<br>Status: '+esc(o.status)+'<br>Payment: '+esc(o.payment_status)+'</p><p>'+esc(o.customer_name)+'<br>'+esc(o.customer_email)+'<br>'+esc(o.customer_phone)+'<br>'+esc([addr.floor,addr.street,addr.landmark,addr.city,addr.state,addr.pincode].filter(Boolean).join(', '))+'</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+items+'</tbody></table><div class="total">Grand total: '+money(o.grand_total)+'</div><p>Thank you for choosing Airevo.</p><script>window.onload=()=>window.print()</script></body></html>';
  const w=window.open('','_blank','width=850,height=900');if(!w){toast('Allow pop-ups to download or print your bill.');return}w.document.write(html);w.document.close();
 }
-async function openOrderReview(s,user,orderId){
- const {data:order,error}=await s.from('orders').select('id,order_number').eq('id',orderId).eq('user_id',user.id).single();if(error){toast(error.message);return}
- const modal=document.createElement('div');modal.className='modal-backdrop open';modal.innerHTML='<div class="modal"><div class="modal-head"><button class="modal-close" type="button">×</button><span class="hero-kicker">Order review</span><h2>Share your experience</h2><p>'+esc(order.order_number)+'</p></div><div class="modal-body"><div id="order-review-status" class="status-message"></div><form id="order-review-form"><div class="field"><label>Star rating</label><select name="rating"><option value="5">★★★★★ · 5 stars</option><option value="4">★★★★ · 4 stars</option><option value="3">★★★ · 3 stars</option><option value="2">★★ · 2 stars</option><option value="1">★ · 1 star</option></select></div><div class="field"><label>Review title</label><input name="title" maxlength="120"></div><div class="field"><label>Your experience</label><textarea name="body" maxlength="4000" required></textarea></div><button class="btn" type="submit">Submit review</button></form></div></div>';
- document.body.appendChild(modal);modal.querySelector('.modal-close').onclick=()=>modal.remove();
- modal.querySelector('#order-review-form').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.currentTarget),payload={user_id:user.id,order_id:order.id,customer_name:user.user_metadata?.full_name||user.email,rating:Number(fd.get('rating')),title:String(fd.get('title')||'').trim(),body:String(fd.get('body')||'').trim(),is_verified_purchase:true,is_approved:false};const {error}=await s.from('reviews').insert(payload);const st=modal.querySelector('#order-review-status');if(error){st.textContent=error.code==='23505'?'You have already reviewed this order.':error.message;st.className='status-message show error'}else{st.textContent='Thank you. Your review has been sent to the owner for moderation.';st.className='status-message show';e.currentTarget.reset();setTimeout(()=>location.reload(),900)}};
+async function submitInlineOrderReview(s,user,orderId,form){
+ const host=form.closest('[data-order-review]'),status=form.querySelector('[data-review-status]'),submit=form.querySelector('button[type="submit"]');
+ const rating=Number(host?.dataset.selectedRating||0),body=String(new FormData(form).get('body')||'').trim(),file=form.elements.review_image?.files?.[0]||null;
+ if(!rating){status.textContent='Please choose a star rating first.';status.className='status-message show error';return}
+ if(file&&(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5242880)){status.textContent='Choose one JPG, PNG or WEBP image up to 5 MB.';status.className='status-message show error';return}
+ submit.disabled=true;submit.textContent='Submitting…';
+ try{
+  let imageUrl=null;
+  if(file){
+   const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg',path=user.id+'/'+orderId+'/'+crypto.randomUUID()+'.'+ext;
+   const {error:uploadError}=await s.storage.from('airevo-reviews').upload(path,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;
+   const {data}=s.storage.from('airevo-reviews').getPublicUrl(path);imageUrl=data.publicUrl;
+  }
+  const payload={user_id:user.id,order_id:orderId,customer_name:user.user_metadata?.full_name||user.email,rating,title:null,body,image_url:imageUrl,is_verified_purchase:true,is_approved:false};
+  const {error}=await s.from('reviews').insert(payload);if(error)throw error;
+  host.innerHTML='<strong class="review-note">Thank you — your review has been submitted for moderation.</strong>';
+ }catch(err){status.textContent=err.code==='23505'?'You have already reviewed this order.':(err.message||'Unable to submit your review.');status.className='status-message show error';submit.disabled=false;submit.textContent='Submit review'}
 }
 
 function loginPage(){return heroHead('Customer account','Welcome back to Airevo.','Sign in to manage your details, follow orders and save your favourite appliances.')+'<section class="auth-shell"><div class="auth-card"><span class="eyebrow">Customer account</span><h1 id="auth-heading">Sign in to your account</h1><p>Create an account or sign in using email and password. Email verification and password recovery use Supabase Auth.</p><div class="auth-tabs"><button class="active" data-auth-mode="login">Sign in</button><button data-auth-mode="signup">Create account</button></div><div id="customer-auth-status" class="status-message"></div><form id="customer-auth-form" class="auth-form"><div class="field" id="auth-name-field" hidden><label>Full name</label><input id="auth-fullname"></div><div class="field"><label>Email address</label><input id="auth-email" type="email" required autocomplete="email"></div><div class="field"><label>Password</label><input id="auth-password" type="password" minlength="8" required autocomplete="current-password"></div><div id="auth-confirm-password-field" class="field" hidden><label>Confirm password</label><input id="auth-confirm-password" type="password" minlength="8"></div><div class="auth-links"><a href="#" id="forgot-password">Forgot password?</a><a href="/account.html">My account</a></div><button class="btn" id="customer-auth-submit">Sign in</button></form><form id="password-recovery-email-form" class="auth-form" hidden><div class="field"><label>Email address</label><input id="recovery-email" type="email" autocomplete="email" required></div><button class="btn" id="recovery-send-code">Send verification code</button><button class="btn dark" type="button" id="recovery-back-login">Back to sign in</button></form><form id="password-recovery-code-form" class="auth-form" hidden><p class="form-help">Enter the verification code sent to your email address.</p><div class="field"><label>Verification code</label><input id="recovery-code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required></div><button class="btn" id="recovery-verify-code">Verify code</button><div class="auth-links"><a href="#" id="recovery-resend-code">Resend code</a><a href="#" id="recovery-back-email">Change email</a></div></form><form id="password-recovery-new-form" class="auth-form" hidden><div class="field"><label>New password</label><input id="recovery-new-password" type="password" minlength="8" autocomplete="new-password" required></div><div class="field"><label>Confirm new password</label><input id="recovery-confirm-password" type="password" minlength="8" autocomplete="new-password" required></div><button class="btn" id="recovery-update-password">Update password</button></form></div></section>'}

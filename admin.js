@@ -428,7 +428,16 @@ function mountDemoDashboard(){
  const button=(action,label,idValue,secondary)=>'<button type="button" data-action="'+action+'" data-id="'+esc(idValue||'')+'" '+(secondary?'class="secondary"':'')+'>'+label+'</button>';
  const actions=items=>'<div class="hero-buttons" style="gap:7px;flex-wrap:wrap">'+items+'</div>';
  const editor=(title,body)=>'<div class="admin-panel" id="demo-editor"><div class="admin-panel-head"><h3>'+title+'</h3>'+button('editor-close','Close')+'</div>'+body+'</div>';
- const setTab=next=>{tab=next;$$('#admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));render()};
+ const setTab=next=>{tab=next;$('#admin-nav [data-admin-tab]').forEach(b=>b.classList.toggle('active',b.dataset.adminTab===tab));render()};
+ const renderSettings=()=>{
+  host.innerHTML='<div class="admin-panel"><h3>Admin settings</h3><p>Manage your own administrator account. Password changes are applied to the currently signed-in Supabase account.</p><form id="settings-password-form"><div class="admin-form-grid">'+
+   '<div class="field"><label for="settings-current-password">Current password</label><input id="settings-current-password" name="currentPassword" type="password" autocomplete="current-password" required></div>'+
+   '<div class="field"><label for="settings-new-password">New password</label><input id="settings-new-password" name="newPassword" type="password" autocomplete="new-password" minlength="8" required></div>'+
+   '<div class="field"><label for="settings-confirm-password">Confirm new password</label><input id="settings-confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>'+
+   '</div><div class="hero-buttons"><button class="btn" type="submit">Change password</button></div></form></div>'+
+   '<div class="admin-panel"><h3>Sign out</h3><p>Sign out of this Airevo administrator account on this device.</p>'+button('settings-logout','Log out')+'</div>'+
+   '<div class="admin-panel settings-danger"><h3>Reset all sales</h3><p>Clears every <strong>demo order, offline bill and return record</strong> saved in this browser, so the demo sales figures return to zero. Products, stock quantities, reviews, enquiries, blog posts and collections are left untouched.</p><p><strong>Demo only:</strong> this action does not delete real orders or sales from Supabase. A live sales reset will remain owner-only and must be implemented against the protected production data.</p>'+button('reset-sales','Reset all demo sales',null,true)+'</div>';
+ };
  const metrics=()=>{
   const done=state.orders.filter(recognised),gross=done.reduce((n,o)=>n+amount(o),0),returns=done.reduce((n,o)=>n+Number(o.returnAmount||0),0),cogs=done.reduce((n,o)=>n+cost(o),0);
   return {done,gross,returns,cogs,net:gross-returns,profit:gross-returns-cogs,offline:state.orders.filter(o=>o.source==='Offline').length,pending:state.orders.filter(o=>o.status==='Pending'||o.payment==='Pending').length,returnedCount:done.filter(o=>Number(o.returnAmount||0)>0).length,stockValue:state.products.reduce((n,p)=>n+Number(p.stock||0)*Number(p.costPrice||0),0),customers:new Set(state.orders.map(o=>o.customerName).filter(Boolean)).size};
@@ -471,7 +480,7 @@ function mountDemoDashboard(){
   host.innerHTML='<div class="admin-panel"><h3>Customer enquiries</h3><p>Customer details are shown in separate columns. Use the phone link to call and the email link to compose an email.</p>'+table(['Received','Name','Call','Email','Subject','Message','Status'],rows)+'</div>';
  };
  const render=()=>{
-  const views={overview:renderOverview,products:renderProducts,categories:renderCategories,collections:renderCollections,orders:renderOrders,reviews:renderReviews,blogs:renderBlogs,inquiries:renderInquiries};
+  const views={overview:renderOverview,products:renderProducts,categories:renderCategories,collections:renderCollections,orders:renderOrders,reviews:renderReviews,blogs:renderBlogs,inquiries:renderInquiries,settings:renderSettings};
   host.innerHTML='<div class="demo-note"><strong>INTERACTIVE CLIENT DEMO</strong> · Sample records only. Changes stay in this browser and do not modify Supabase, real customer orders or the public catalogue.</div>';
   const note=host.innerHTML; (views[tab]||renderOverview)();host.innerHTML=note+host.innerHTML;
  };
@@ -584,17 +593,28 @@ function mountDemoDashboard(){
   host.insertAdjacentHTML('beforeend',editor('Record return · '+esc(o.orderNo),form));$('#demo-editor').dataset.orderId=o.id;
  };
  nav.innerHTML='<div class="admin-nav-label">AIREVO DEMO WORKSPACE</div>'+
-  [['overview','Overview'],['products','Products & variants'],['categories','Categories'],['collections','Collections'],['orders','Orders, bills & returns'],['reviews','Customer reviews'],['blogs','Blog posts'],['inquiries','Enquiries']].map(x=>'<button type="button" data-admin-tab="'+x[0]+'">'+x[1]+'</button>').join('')+
+  [['overview','Overview'],['products','Products & variants'],['categories','Categories'],['collections','Collections'],['orders','Orders, bills & returns'],['reviews','Customer reviews'],['blogs','Blog posts'],['inquiries','Enquiries'],['settings','Settings']].map(x=>'<button type="button" data-admin-tab="'+x[0]+'">'+x[1]+'</button>').join('')+
   '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #ffffff20"><small style="display:block;color:#8fa5b4;font-size:9px;line-height:1.5;margin-bottom:9px">Sample data · browser-only demo</small>'+button('reset-demo','Reset sample data')+'</div>';
  nav.onclick=e=>{
   const t=e.target.closest('[data-admin-tab]');if(t){setTab(t.dataset.adminTab);return}
   const a=e.target.closest('[data-action]');if(!a)return;
   if(a.dataset.action==='reset-demo'&&confirm('Reset all Airevo demo records to the original sample data?')){state=clone(seed);try{localStorage.removeItem(REV_KEY)}catch(_){}save('Demo data reset.');setTab('overview')}
  };
- host.onclick=e=>{
+ host.onclick=async e=>{
   const go=e.target.closest('[data-action="go-tab"]');if(go){setTab(go.dataset.id);return}
   const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action,value=b.dataset.id;
   if(action==='editor-close'){$('#demo-editor')?.remove();return}
+  if(action==='settings-logout'){
+   if(!confirm('Log out of the Airevo admin account on this device?'))return;
+   const client=db();if(!client?.auth){toast('Authentication is unavailable.');return}
+   const {error}=await client.auth.signOut();if(error){toast('Could not log out: '+error.message);return}
+   location.href='/admin';return;
+  }
+  if(action==='reset-sales'){
+   const confirmText=window.prompt('This clears all demo orders, offline bills and returns in this browser only. Type RESET SALES to continue.');
+   if(confirmText!=='RESET SALES'){toast('Sales reset cancelled.');return}
+   const removed=state.orders.length;state.orders=[];save(removed+' demo sales records and their return totals were cleared. Product stock was not changed.');setTab('overview');return;
+  }
   if(action==='export-sales'){downloadExcel();return}
   if(action==='print-bill'){const o=state.orders.find(x=>x.id===value);if(o)printBill(o);return}
   if(action==='return-order'){const o=state.orders.find(x=>x.id===value);if(o)showReturnForm(o);return}
@@ -637,7 +657,22 @@ function mountDemoDashboard(){
  };
  host.onsubmit=async e=>{
   const form=e.target;if(!form.id||!form.id.endsWith('-form'))return;
-  e.preventDefault();const d=new FormData(form),val=n=>String(d.get(n)||'').trim(),num=n=>Number(d.get(n)||0),edit=$('#demo-editor')?.dataset.editId||'';
+  e.preventDefault();
+  if(form.id==='settings-password-form'){
+   const d=new FormData(form),currentPassword=String(d.get('currentPassword')||''),newPassword=String(d.get('newPassword')||''),confirmPassword=String(d.get('confirmPassword')||''),submit=form.querySelector('button[type="submit"]');
+   if(newPassword.length<8){toast('Use a new password with at least 8 characters.');return}
+   if(newPassword!==confirmPassword){toast('The new passwords do not match.');return}
+   const client=db();if(!client?.auth){toast('Authentication is unavailable.');return}
+   submit.disabled=true;submit.textContent='Updating…';
+   try{
+    const {data:{user},error:userError}=await client.auth.getUser();if(userError)throw userError;if(!user?.email)throw new Error('Could not identify the signed-in admin account. Please sign in again.');
+    const {error:verifyError}=await client.auth.signInWithPassword({email:user.email,password:currentPassword});if(verifyError)throw new Error('The current password is incorrect.');
+    const {error:updateError}=await client.auth.updateUser({password:newPassword});if(updateError)throw updateError;
+    form.reset();toast('Admin password updated successfully.');
+   }catch(err){toast(err.message||'Unable to update the password.')}finally{submit.disabled=false;submit.textContent='Change password'}
+   return;
+  }
+  const d=new FormData(form),val=n=>String(d.get(n)||'').trim(),num=n=>Number(d.get(n)||0),edit=$('#demo-editor')?.dataset.editId||'';
   if(form.id==='demo-category-form'){
    const payload={id:edit||id('cat'),name:val('category-name'),description:val('category-description')};if(!payload.name){toast('Enter a category name.');return}
    if(edit)state.categories=state.categories.map(x=>x.id===edit?payload:x);else state.categories.push(payload);save(edit?'Category updated.':'Category created.');render();return;

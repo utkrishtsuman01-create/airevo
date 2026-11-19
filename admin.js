@@ -396,7 +396,7 @@ function mountDemoDashboard(){
   let el=$('#demo-toast');if(!el){el=document.createElement('div');el.id='demo-toast';el.style.cssText='position:fixed;right:22px;bottom:22px;z-index:9999;background:#102534;color:#fff;padding:12px 16px;border-radius:10px;font-size:12px;box-shadow:0 8px 30px #0002';document.body.appendChild(el)}
   el.textContent=message;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',3000);
  };
- const csvCell=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+ const csvCell=v=>{let s=String(v??'');if(typeof v==='string'&&/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
  const downloadExcel=()=>{
   const rows=[['Invoice / order','Date','Sale type','Customer name','Customer email','Customer phone','Address','Product','SKU','Quantity','Unit sale price','Item revenue','Unit cost (private)','Item cost','Return amount','Net order revenue','Order gross profit','Order status','Payment status','Payment method','Return reason']];
   state.orders.forEach(o=>(o.items||[]).forEach((it,i)=>rows.push([
@@ -538,15 +538,15 @@ function mountDemoDashboard(){
  };
  const showBlogForm=b=>{
   $('#demo-editor')?.remove();
-  const form='<form id="demo-blog-form"><div class="admin-form-grid">'+field('Post title','blog-title',b?.title||'','text',false,'required')+field('URL slug','blog-slug',b?.slug||'','text',false,'required')+field('Excerpt','blog-excerpt',b?.excerpt||'','textarea',true)+field('Article content','blog-body',b?.body||'','textarea',true)+field('Image URLs (up to five, one per line)','blog-image-urls',(b?.images||[]).filter(x=>!String(x).startsWith('data:')).join('\n'),'textarea',true)+'<div class="field full"><label>Or upload up to 5 article images</label><input id="blog-image-files" type="file" accept="image/*" multiple><small>Uploaded images are compressed and saved in this browser demo.</small><div class="demo-media-preview">'+(b?.images||[]).map(src=>'<img src="'+esc(src)+'" alt="Article image preview">').join('')+'</div></div>'+field('Status','blog-status',b?.status||'Draft','select',false,[{value:'Draft',label:'Draft'},{value:'Published',label:'Published'}])+'</div><div class="hero-buttons"><button class="btn" type="submit">'+(b?'Save post':'Create post')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
+  const form='<form id="demo-blog-form"><div class="admin-form-grid">'+field('Post title','blog-title',b?.title||'','text',false,'required')+field('URL slug','blog-slug',b?.slug||'','text',false,'required')+field('Excerpt','blog-excerpt',b?.excerpt||'','textarea',true)+field('Article content','blog-body',b?.body||'','textarea',true)+field('Image URLs (up to five, one per line)','blog-image-urls',(b?.images||[]).filter(x=>!String(x).startsWith('data:')).join('\n'),'textarea',true)+'<div class="field full"><label>Or upload up to 5 article images</label><input id="blog-image-files" type="file" accept="image/*" multiple><small>Uploaded images will be visible inside the published article. Browser demo compresses the files locally.</small><div class="demo-media-preview">'+(b?.images||[]).map(src=>'<img src="'+esc(src)+'" alt="Article image preview">').join('')+'</div></div>'+field('Status','blog-status',b?.status||'Draft','select',false,[{value:'Draft',label:'Draft'},{value:'Published',label:'Published'}])+'</div><div class="hero-buttons"><button class="btn" type="submit">'+(b?'Save post':'Create post')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
   host.insertAdjacentHTML('beforeend',editor(b?'Edit blog post':'New blog post',form));$('#demo-editor').dataset.editId=b?.id||'';
   $('#demo-blog-form').onsubmit=async e=>{
    e.preventDefault();const f=e.target;try{
     const urls=f.elements['blog-image-urls'].value.split('\n').map(x=>x.trim()).filter(Boolean),files=Array.from($('#blog-image-files').files||[]);
     if(urls.length+files.length>5)throw new Error('A blog post can have a maximum of five images.');
-    const fileUrls=[];for(const file of files)fileUrls.push(await mediaImage(file));
-    const edit=$('#demo-editor').dataset.editId||'',payload={id:edit||id('blog'),title:f.elements['blog-title'].value.trim(),slug:f.elements['blog-slug'].value.trim(),excerpt:f.elements['blog-excerpt'].value.trim(),body:f.elements['blog-body'].value.trim(),images:[...urls,...fileUrls],status:f.elements['blog-status'].value};
-    if(!payload.title||!payload.slug)throw new Error('Post title and slug are required.');
+    const uploaded=[];for(const file of files)uploaded.push(await mediaImage(file));
+    const edit=$('#demo-editor').dataset.editId||'',payload={id:edit||id('blog'),title:f.elements['blog-title'].value.trim(),slug:f.elements['blog-slug'].value.trim(),excerpt:f.elements['blog-excerpt'].value.trim(),body:f.elements['blog-body'].value.trim(),images:[...urls,...uploaded],status:f.elements['blog-status'].value};
+    if(!payload.title||!payload.slug)throw new Error('Post title and URL slug are required.');
     if(edit)state.blogs=state.blogs.map(x=>x.id===edit?payload:x);else state.blogs.unshift(payload);
     save(edit?'Blog post updated.':'Blog post created.');render();
    }catch(err){toast(err.message||String(err))}

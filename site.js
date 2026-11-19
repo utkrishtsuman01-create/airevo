@@ -503,14 +503,13 @@ function adminPage(){return adminDashboard()}
 function adminDashboard(){return heroHead('Airevo admin','Store management. One workspace.','Manage catalogue content, product variants, stock, collections, orders, reviews and editorial posts.')+'<section class="section"><div class="container admin-shell"><aside class="admin-nav" id="admin-nav"><button class="active" data-admin-tab="overview">Overview</button><button data-admin-tab="products">Products & variants</button><button data-admin-tab="categories">Categories</button><button data-admin-tab="collections">Collections</button><button data-admin-tab="orders">Orders & billing</button><button data-admin-tab="reviews">Reviews</button><button data-admin-tab="blogs">Blog posts</button><button data-admin-tab="inquiries">Enquiries</button><button data-admin-tab="support">Admin Help</button><button id="admin-signout">Sign out</button></aside><div class="admin-main" id="admin-main"><div class="boot-screen"><span class="boot-mark">A</span><span>Loading store data…</span></div></div></div></section>'}
 function shell(content){
  app.innerHTML=header()+'<main>'+content+'</main>'+footer()+
- '<div class="drawer" id="cart-drawer"><div class="drawer-head"><h3>Your basket <span id="drawer-count">('+qty()+')</span></h3><button class="drawer-close" id="cart-close">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-foot" id="drawer-foot"><div class="drawer-total"><span>Subtotal</span><b id="drawer-total">'+money(total())+'</b></div><p class="demo-note">Shipping and final availability are confirmed at checkout.</p><button class="btn" id="checkout-start">Proceed to checkout ↗</button></div></div>'+
- '<div class="modal-backdrop" id="checkout-modal"><div class="modal"><div class="modal-head"><button class="modal-close" data-modal-close="checkout-modal">×</button><span class="eyebrow">Almost yours</span><h2>Delivery details</h2><p>Orders require a verified customer account.</p></div><div class="modal-body"><div id="checkout-status" class="status-message"></div><form id="checkout-form"><div class="form-grid"><div class="field"><label>Full name</label><input id="checkout-name" required></div><div class="field"><label>Mobile number</label><input id="checkout-phone" type="tel" required></div><div class="field full"><label>Delivery address</label><textarea id="checkout-address" required></textarea></div><div class="field"><label>City</label><input id="checkout-city" required></div><div class="field"><label>State</label><input id="checkout-state" required></div><div class="field"><label>PIN code</label><input id="checkout-pin" required></div></div><p class="demo-note">Demo store orders are saved in Airevo and reduce demo stock. No payment gateway is connected yet.</p><button class="btn">Place demo order ↗</button></form></div></div></div>';
+ '<div class="drawer" id="cart-drawer"><div class="drawer-head"><h3>Your basket <span id="drawer-count">('+qty()+')</span></h3><button class="drawer-close" id="cart-close">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-foot" id="drawer-foot"><div class="drawer-total"><span>Subtotal</span><b id="drawer-total">'+money(total())+'</b></div><p class="demo-note">Shipping and final availability are confirmed at checkout.</p><button class="btn" id="checkout-start">Proceed to checkout ↗</button></div></div>';
  $('#menu-toggle')?.addEventListener('click',()=>$('#main-nav').classList.toggle('open'));
  $$('.nav-item').forEach(it=>{const l=$(':scope > .nav-link',it);if($(':scope > .mega-menu',it))l.addEventListener('click',e=>{if(innerWidth<=850){e.preventDefault();it.classList.toggle('open')}})});
  $('#cart-open')?.addEventListener('click',()=>$('#cart-drawer').classList.add('open'));$('#cart-close')?.addEventListener('click',()=>$('#cart-drawer').classList.remove('open'));
  // Cart drawer actions are delegated at document level below so they survive shell re-renders.
- const startCheckout=async()=>{if(!S.cart.length){toast('Your basket is empty');return}const s=db(),session=await s.auth.getSession();if(!session.data.session){location.href='/login.html?next=%2Fcatalogue.html%3Fcheckout%3D1';return}$('#cart-drawer').classList.remove('open');$('#checkout-modal').classList.add('open');$('#checkout-name').value=session.data.session.user.user_metadata?.full_name||''};$('#checkout-start')?.addEventListener('click',startCheckout);
- $$('[data-modal-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.modalClose).classList.remove('open'));$('#checkout-form')?.addEventListener('submit',placeOrder);
+ const startCheckout=async()=>{if(!S.cart.length){toast('Your cart is empty');return}const s=db();if(!s){toast('Checkout is temporarily unavailable. Please try again.');return}const {data}=await s.auth.getSession();if(!data.session){location.href='/login.html?next=%2Fcheckout.html';return}location.href='/checkout.html'};$('#checkout-start')?.addEventListener('click',startCheckout);
+ $('#checkout-form')?.addEventListener('submit',placeOrder);
  if(!window.__airevoCartClickBound){document.addEventListener('click',e=>{
   const target=e.target;
   if(!target||typeof target.closest!=='function')return;
@@ -530,7 +529,7 @@ function shell(content){
   saveCart();renderCart();syncProductCardQuantities();
  });window.__airevoCartClickBound=true;}
  renderCart();
-if(new URL(location.href).searchParams.get('checkout')==='1'){db()?.auth.getSession().then(({data})=>{if(data.session&&S.cart.length){$('#cart-drawer')?.classList.add('open');$('#checkout-modal')?.classList.add('open');$('#checkout-name').value=data.session.user.user_metadata?.full_name||''}})}
+
 }
 async function placeOrder(e){
  e.preventDefault();const s=db(),status=$('#checkout-status'),btn=$('#checkout-form button');
@@ -538,7 +537,7 @@ async function placeOrder(e){
  const session=await s.auth.getSession(),user=session.data.session?.user;
  if(!user){location.href='/login.html?next=%2Fcatalogue.html%3Fcheckout%3D1';return}
  status.textContent='';status.className='status-message';btn.disabled=true;btn.textContent='Placing order…';
- const body={customer_name:$('#checkout-name').value.trim(),customer_phone:$('#checkout-phone').value.trim(),shipping_address:{address:$('#checkout-address').value.trim(),city:$('#checkout-city').value.trim(),state:$('#checkout-state').value.trim(),pincode:$('#checkout-pin').value.trim()},items:S.cart.map(x=>({product_id:x.product_id,variant_id:x.variant_id,quantity:x.qty}))};
+ const body={customer_name:$('#checkout-name').value.trim(),customer_phone:$('#checkout-phone').value.trim(),customer_email:$('#checkout-email')?.value.trim()||user.email||'',shipping_address:{floor:$('#checkout-floor')?.value.trim()||'',address:$('#checkout-address').value.trim(),landmark:$('#checkout-landmark')?.value.trim()||'',city:$('#checkout-city').value.trim(),state:$('#checkout-state').value.trim(),pincode:$('#checkout-pin').value.trim()},items:S.cart.map(x=>({product_id:x.product_id,variant_id:x.variant_id,quantity:x.qty}))};
  try{
   const {data,error}=await s.functions.invoke('place-order',{body});
   if(error||data?.error||!data?.order)throw new Error(data?.error||error?.message||'The order could not be saved. Please try again.');
@@ -570,6 +569,23 @@ function productImages(){
  });
 }
 async function syncHeaderAuth(){const client=db();if(!client)return;const {data}=await client.auth.getSession();const link=$('.login-link');if(!link)return;link.classList.remove('account-icon-link');link.removeAttribute('aria-label');link.removeAttribute('title');if(data.session){if(page==='account'){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await client.auth.signOut();location.href='/login.html'};}else{link.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 0 0-16 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';link.href='/account.html';link.classList.add('account-icon-link');link.setAttribute('aria-label','Account settings');link.setAttribute('title','Account settings');link.onclick=null;}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null;}}
+async function checkoutPage(){
+ const client=db();
+ if(!client)return heroHead('Checkout','Checkout is unavailable right now.','Please refresh the page and try again.');
+ const {data}=await client.auth.getSession();
+ if(!data.session){location.replace('/login.html?next=%2Fcheckout.html');return '<section class="section"><div class="container"><div class="boot-screen"><span class="boot-mark">A</span><span>Taking you to sign in…</span></div></div></section>'}
+ if(!S.cart.length)return heroHead('Checkout','Your cart is empty.','Add an appliance to your cart before continuing.')+'<section class="section"><div class="container"><a class="btn" href="/catalogue.html">Explore appliances ↗</a></div></section>';
+ const rows=S.cart.map(x=>'<div class="checkout-item"><img src="'+esc(x.image||'')+'" alt=""><div class="checkout-item-copy"><strong>'+esc(x.name)+'</strong><small>Quantity: '+Number(x.qty||0)+' · '+money(x.price)+' each</small></div><b>'+money(Number(x.price||0)*Number(x.qty||0))+'</b></div>').join('');
+ return '<section class="checkout-hero"><div class="container"><div class="breadcrumb"><a href="/">Home</a> / <a href="/catalogue.html">Shop</a> / Checkout</div><span class="hero-kicker">Airevo checkout</span><h1>Complete your order.</h1><p>Your details, delivery address and order summary — all in one place.</p></div></section>'+
+ '<section class="section checkout-section"><div class="container checkout-layout"><div class="checkout-main"><form id="checkout-form" class="checkout-card"><div class="checkout-card-heading"><span class="eyebrow">01 · Your details</span><h2>Contact information</h2><p>We’ll use these details to coordinate your order.</p></div><div class="form-grid"><div class="field"><label for="checkout-name">Full name</label><input id="checkout-name" autocomplete="name" required></div><div class="field"><label for="checkout-phone">Mobile number</label><input id="checkout-phone" type="tel" inputmode="tel" autocomplete="tel" pattern="[0-9+() -]{10,16}" required></div><div class="field full"><label for="checkout-email">Account email</label><input id="checkout-email" type="email" autocomplete="email" readonly></div></div><div class="checkout-card-heading checkout-subheading"><span class="eyebrow">02 · Delivery address</span><h2>Where should we deliver?</h2></div><div class="form-grid"><div class="field full"><label for="checkout-floor">Floor / flat / house number</label><input id="checkout-floor" autocomplete="address-line2" required placeholder="Flat, floor, house number"></div><div class="field full"><label for="checkout-address">Street / road name</label><input id="checkout-address" autocomplete="street-address" required placeholder="Building, street and road"></div><div class="field full"><label for="checkout-landmark">Nearby landmark <span class="checkout-optional">Optional</span></label><input id="checkout-landmark" placeholder="A nearby shop, building or landmark"></div><div class="field"><label for="checkout-city">City</label><input id="checkout-city" autocomplete="address-level2" required></div><div class="field"><label for="checkout-state">State</label><input id="checkout-state" autocomplete="address-level1" required></div><div class="field"><label for="checkout-pin">PIN code</label><input id="checkout-pin" inputmode="numeric" autocomplete="postal-code" pattern="[0-9]{6}" maxlength="6" required></div></div><div class="checkout-card-heading checkout-subheading"><span class="eyebrow">03 · Payment</span><h2>Payment method</h2></div><div class="checkout-payment"><div class="checkout-payment-icon">₹</div><div><strong>Online payment via Razorpay</strong><p>Secure online payments will be enabled when Airevo launches. Razorpay is not connected yet.</p><span class="checkout-coming-soon">Coming soon</span></div></div><div id="checkout-status" class="status-message" role="status" aria-live="polite"></div><div class="checkout-submit-row"><p>For this demo, you can save the order now. Payment will remain pending.</p><button class="btn" type="submit">Place demo order ↗</button></div></form></div><aside class="checkout-summary"><div class="checkout-summary-head"><span class="eyebrow">Your order</span><h2>Order summary</h2><span>'+qty()+' item'+(qty()===1?'':'s')+'</span></div><div class="checkout-items">'+rows+'</div><div class="checkout-totals"><div><span>Subtotal</span><b>'+money(total())+'</b></div><div><span>Delivery</span><b>To be confirmed</b></div><div class="checkout-grand-total"><span>Order subtotal</span><b>'+money(total())+'</b></div></div><p class="checkout-summary-note">Final delivery arrangements will be confirmed by the Airevo team. No payment is collected through this demo checkout.</p><a class="checkout-back-link" href="/catalogue.html">← Continue shopping</a></aside></div></section>';
+}
+async function bindCheckout(){
+ const client=db();if(!client)return;
+ const {data}=await client.auth.getSession();
+ if(!data.session){location.replace('/login.html?next=%2Fcheckout.html');return}
+ const email=$('#checkout-email');if(email)email.value=data.session.user.email||'';
+ if(S.cart.length)await prefillCheckout(client,data.session.user);
+}
 async function render(){
  const loadTask=load();
  let content='';
@@ -584,6 +600,7 @@ async function render(){
  else if(page==='product')content=productPage();
  else if(page==='login')content=loginPage();
  else if(page==='account')content=await accountPage();
+ else if(page==='checkout')content=await checkoutPage();
  else if(page==='admin')content=adminPage();
  else if(page==='blog')content=blogPage();
  else if(page==='blog-post')content=blogPostPage();
@@ -592,6 +609,7 @@ async function render(){
  if(page==='login')window.AirevoAuth?.customerBoot();
  if(page==='admin')window.AirevoAdmin?.render();
  if(page==='account')bindAccount();
+ if(page==='checkout')bindCheckout();
  }catch(e){console.error(e);shell(heroHead('Airevo','Something went wrong.','Please refresh the page or contact the Airevo team.')+'<section class="section"><div class="container">'+esc(e.message||e)+'</div></section>')}
  if(loadTask&&!S.dataLoaded)loadTask.then(()=>{if(S.dataLoaded&&!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
 }

@@ -27,7 +27,7 @@ function customerBoot(){
    if(password!==confirm){show(status,'The passwords do not match.',true);btn.disabled=false;return}
    const {data,error}=await s.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.origin+'/login.html?verified=1'}});
    if(error)show(status,error.message,true);
-   else show(status,data.session?'Account created. You are signed in.':'Account created. Please check your inbox and verify your email before signing in.');
+   else if(data.session){show(status,'Your Airevo account is ready. Redirecting…');redirectAfterLogin()}else show(status,'Your account was created, but automatic sign-in is not enabled yet. Airevo is being configured for password-only customer signup.');
   }else{
    const {data,error}=await s.auth.signInWithPassword({email,password});
    if(error)show(status,error.message,true);else redirectAfterLogin();
@@ -96,16 +96,7 @@ function adminBootForm(){
   const {data:req}=await s.from('admin_access_requests').select('status').eq('user_id',session.user.id).maybeSingle();
   if(req?.status==='pending'){show(status,'Your email is signed in, but admin access is still pending approval.');}
   else{
-   show(status,'Your account is not an administrator yet. You can request administrator access from the Airevo owner.');
-   if(session.user.email_confirmed_at){
-    const requestButton=document.createElement('button');requestButton.type='button';requestButton.className='btn';requestButton.textContent='Request admin access';requestButton.style.marginTop='10px';
-    requestButton.addEventListener('click',async()=>{
-     requestButton.disabled=true;const {error:requestError}=await s.from('admin_access_requests').insert({user_id:session.user.id,email:session.user.email,status:'pending'});
-     if(requestError){show(status,requestError.message,true);requestButton.disabled=false;}
-     else show(status,'Admin access request submitted. An existing Airevo administrator must approve it before you can enter the dashboard.');
-    });
-    status.appendChild(requestButton);
-   }
+   show(status,'This account is not the designated Airevo owner. Admin access is restricted to info@airevo.com.',true);
   }
   return false;
  }
@@ -113,6 +104,7 @@ function adminBootForm(){
   e.preventDefault();const email=$('#admin-email').value.trim(),password=$('#admin-password').value,btn=$('#admin-auth-submit');btn.disabled=true;
   if(mode==='signup'){
    const name=$('#admin-fullname').value.trim();
+   if(email.toLowerCase()!=='info@airevo.com'){show(status,'Only the designated Airevo owner email can create the administrator account.',true);btn.disabled=false;return}
    if(password!==$('#admin-confirm').value){show(status,'The passwords do not match.',true);btn.disabled=false;return}
    const {data,error}=await s.auth.signUp({email,password,options:{data:{full_name:name,airevo_admin_request:true},emailRedirectTo:location.origin+'/admin?verified=1'}});
    if(error)show(status,error.message,true);

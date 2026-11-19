@@ -276,15 +276,28 @@ function shell(content){
 if(new URL(location.href).searchParams.get('checkout')==='1'){db()?.auth.getSession().then(({data})=>{if(data.session&&S.cart.length){$('#cart-drawer')?.classList.add('open');$('#checkout-modal')?.classList.add('open');$('#checkout-name').value=data.session.user.user_metadata?.full_name||'';prefillCheckout(db(),data.session.user)}})}
 }
 function syncProductCardQuantities(){
- $('[data-product-card].product-card').forEach(card=>{
+ $$('.product-card[data-product-card]').forEach(card=>{
   const p=S.products.find(x=>String(x.id)===String(card.dataset.productCard));if(!p)return;
-  const sel=$('.variant-select',card),v=sel&&(p.product_variants||[]).find(x=>String(x.id)===String(sel.value)),key=v?.id||p.id,item=S.cart.find(x=>String(x.key)===String(key)),actions=$('.product-actions',card);if(!actions)return;
-  const control=$('[data-product-qty]',actions)?.closest('.product-qty-control'),details=$('.btn-mini',actions);
-  if(item&&item.qty>0){const html='<div class="product-qty-control"><button type="button" data-product-qty="'+p.id+'" data-step="-1" aria-label="Decrease quantity">−</button><span>'+item.qty+'</span><button type="button" data-product-qty="'+p.id+'" data-step="1" aria-label="Increase quantity">+</button></div>';if(control)control.outerHTML=html;else{const buy=$('[data-add-product]',actions);if(buy)buy.outerHTML=html;else if(details)details.insertAdjacentHTML('beforebegin',html)}}
-  else if(control)control.outerHTML='<button class="btn" data-add-product="'+p.id+'">Buy now</button>';
+  const sel=$('.variant-select',card),v=sel&&(p.product_variants||[]).find(x=>String(x.id)===String(sel.value)),key=v?.id||p.id;
+  const item=S.cart.find(x=>String(x.key)===String(key)),actions=$('.product-actions',card);if(!actions)return;
+  const control=$('[data-product-qty]',actions)?.closest('.product-qty-control');
+  if(item&&item.qty>0){
+   const html='<div class="product-qty-control"><button type="button" data-product-qty="'+p.id+'" data-step="-1" aria-label="Decrease quantity">−</button><span>'+item.qty+'</span><button type="button" data-product-qty="'+p.id+'" data-step="1" aria-label="Increase quantity">+</button></div>';
+   if(control)control.outerHTML=html;else{const buy=$('[data-add-product]',actions);if(buy)buy.outerHTML=html;}
+  }else if(control){control.outerHTML='<button class="btn" data-add-product="'+p.id+'">Buy now</button>';}
  });
 }
-function renderCart(){const rows=$('#drawer-items');const count=qty();const badge=$('#cart-count');if(badge){badge.textContent=count>99?'99+':String(count);badge.hidden=count===0;$('#cart-open')?.setAttribute('aria-label','Shopping cart, '+count+' items')}if(!rows)return;$('#drawer-count').textContent='('+count+')';$('#drawer-total').textContent=money(total());$('#drawer-foot').style.display=S.cart.length?'block':'none';rows.innerHTML=S.cart.length?S.cart.map(x=>'<div class="drawer-row"><img src="'+esc(x.image)+'" alt=""><div><strong>'+esc(x.name)+'</strong><small>'+money(x.price)+' each</small><div class="cart-qty"><button data-cart-qty="'+esc(x.key)+'" data-step="-1">−</button><span>'+x.qty+'</span><button data-cart-qty="'+esc(x.key)+'" data-step="1">+</button></div></div><div><b>'+money(x.price*x.qty)+'</b><button class="remove-cart" data-cart-remove="'+esc(x.key)+'">Remove</button></div></div>').join(''):'<div class="empty-state"><h3>Your basket is empty.</h3><p>Explore the Airevo catalogue and add an appliance.</p></div>'}
+function renderCart(){
+ const count=qty(),badge=$('#cart-count'),cartButton=$('#cart-open');
+ if(badge){badge.textContent=count>99?'99+':String(count);badge.hidden=count===0;}
+ if(cartButton)cartButton.setAttribute('aria-label','Shopping cart, '+count+' items');
+ const rows=$('#drawer-items');if(!rows)return;
+ const drawerCount=$('#drawer-count'),drawerTotal=$('#drawer-total'),drawerFoot=$('#drawer-foot');
+ if(drawerCount)drawerCount.textContent='('+count+')';
+ if(drawerTotal)drawerTotal.textContent=money(total());
+ if(drawerFoot)drawerFoot.style.display=S.cart.length?'block':'none';
+ rows.innerHTML=S.cart.length?S.cart.map(x=>'<div class="drawer-row"><img src="'+esc(x.image)+'" alt=""><div><strong>'+esc(x.name)+'</strong><small>'+money(x.price)+' each</small><div class="cart-qty"><button data-cart-qty="'+esc(x.key)+'" data-step="-1">−</button><span>'+x.qty+'</span><button data-cart-qty="'+esc(x.key)+'" data-step="1">+</button></div></div><div><b>'+money(x.price*x.qty)+'</b><button class="remove-cart" data-cart-remove="'+esc(x.key)+'">Remove</button></div></div>').join(''):'<div class="empty-state"><h3>Your basket is empty.</h3><p>Explore the Airevo catalogue and add an appliance.</p></div>';
+}
 async function prefillCheckout(s,user){const {data}=await s.from('profiles').select('phone,address,full_name').eq('id',user.id).maybeSingle();const a=data?.address||{};if($('#checkout-name')&&!$('#checkout-name').value)$('#checkout-name').value=data?.full_name||user.user_metadata?.full_name||'';$('#checkout-phone').value=data?.phone||'';$('#checkout-floor').value=a.floor||'';$('#checkout-address').value=a.street||'';$('#checkout-landmark').value=a.landmark||'';$('#checkout-city').value=a.city||'';$('#checkout-state').value=a.state||'';$('#checkout-pin').value=a.pincode||''}
 async function placeOrder(e){
  e.preventDefault();const s=db(),status=$('#checkout-status'),btn=$('#checkout-form button');const session=await s.auth.getSession(),user=session.data.session?.user;if(!user){location.href='/login.html?next=%2Faccount.html';return}
@@ -499,7 +512,6 @@ function shell(content){
  renderCart();
 if(new URL(location.href).searchParams.get('checkout')==='1'){db()?.auth.getSession().then(({data})=>{if(data.session&&S.cart.length){$('#cart-drawer')?.classList.add('open');$('#checkout-modal')?.classList.add('open');$('#checkout-name').value=data.session.user.user_metadata?.full_name||''}})}
 }
-function renderCart(){const rows=$('#drawer-items');if(!rows)return;$('#cart-count').textContent=qty();$('#drawer-count').textContent='('+qty()+')';$('#drawer-total').textContent=money(total());$('#drawer-foot').style.display=S.cart.length?'block':'none';rows.innerHTML=S.cart.length?S.cart.map(x=>'<div class="drawer-row"><img src="'+esc(x.image)+'" alt=""><div><strong>'+esc(x.name)+'</strong><small>'+money(x.price)+' each</small><div class="cart-qty"><button data-cart-qty="'+esc(x.key)+'" data-step="-1">−</button><span>'+x.qty+'</span><button data-cart-qty="'+esc(x.key)+'" data-step="1">+</button></div></div><div><b>'+money(x.price*x.qty)+'</b><button class="remove-cart" data-cart-remove="'+esc(x.key)+'">Remove</button></div></div>').join(''):'<div class="empty-state"><h3>Your basket is empty.</h3><p>Explore the Airevo catalogue and add an appliance.</p></div>'}
 async function placeOrder(e){
  e.preventDefault();const s=db(),status=$('#checkout-status'),btn=$('#checkout-form button');
  if(!S.cart.length){status.textContent='Your basket is empty.';status.className='status-message show error';return}

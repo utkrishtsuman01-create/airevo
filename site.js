@@ -509,7 +509,7 @@ function productImages(){
   $('#product-main-image').src=images[0]||image(p);bindThumbs();
  });
 }
-async function syncHeaderAuth(){const s=db();if(!s)return;const {data}=await s.auth.getSession();const link=$('.login-link');if(link){if(data.session){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await s.auth.signOut();location.href='/login.html'}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null}}}
+async function syncHeaderAuth(){const client=db();if(!client)return;const {data}=await client.auth.getSession();const link=$('.login-link');if(!link)return;link.classList.remove('account-icon-link');link.removeAttribute('aria-label');link.removeAttribute('title');if(data.session){if(page==='account'){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await client.auth.signOut();location.href='/login.html'};}else{link.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 0 0-16 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';link.href='/account.html';link.classList.add('account-icon-link');link.setAttribute('aria-label','Account settings');link.setAttribute('title','Account settings');link.onclick=null;}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null;}}
 async function render(){
  const loadTask=load();
  let content='';

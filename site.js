@@ -4,7 +4,18 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.quer
 const app=$('#app'), page=document.body.dataset.page||'home', db=()=>window.airevoSupabase;
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>'₹'+Number(v||0).toLocaleString('en-IN'), phone='+91 98361 47993', email='info@airevo.com';
-const S={categories:[],products:[],collections:[],blogs:[],cart:(()=>{try{const value=JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]');return Array.isArray(value)?value:[]}catch(e){console.warn('Airevo cart storage could not be read',e);return[]}})(),dataLoaded:false,dataLoading:null};
+const S={categories:[],products:[],collections:[],blogs:[],cart:(()=>{try{
+ const value=JSON.parse(localStorage.getItem('airevo-cart-v2')||'[]');if(!Array.isArray(value))return[];
+ const normalized=new Map();
+ value.forEach(item=>{
+  if(!item||typeof item!=='object')return;
+  const rawKey=item.key??item.variant_id??item.product_id;if(rawKey==null)return;
+  const key=String(rawKey),count=Math.max(0,Math.floor(Number(item.qty)||0));if(!count)return;
+  if(normalized.has(key))normalized.get(key).qty+=count;
+  else normalized.set(key,{...item,key,qty:count,price:Number(item.price)||0});
+ });
+ return Array.from(normalized.values());
+ }catch(e){console.warn('Airevo cart storage could not be read',e);return[]}})(),dataLoaded:false,dataLoading:null};
 const IMG={
  chimney:'https://faberindia.com/cdn/shop/products/P5A7112_compact.jpg?v=1680244428',
  microwave:'https://nandilathgmart.com/wp-content/uploads/2022/02/25sc4_25l_convection_microwave_rv_5-c1b.png',

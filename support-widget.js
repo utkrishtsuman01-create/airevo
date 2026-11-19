@@ -109,7 +109,7 @@
       client = window.airevoSupabase;
       if (!client) return;
       const {data:{session}} = await client.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) { toggle.hidden = true; return; }
       userId = session.user.id;
       const {data:conversations} = await client.from('support_conversations').select('id').eq('customer_id', userId).order('last_message_at', {ascending:false}).limit(1);
       const conversation = conversations?.[0];
@@ -120,7 +120,7 @@
       latestAdminAt = messages[messages.length - 1].created_at;
       const readAt = getReadAt();
       unread = messages.filter(m => !readAt || new Date(m.created_at) > new Date(readAt)).length;
-      paintBadge();
+      if (isOpen()) markRead(latestAdminAt); else paintBadge();
     })().catch(error => console.error('Airevo Admin Help notification setup failed.', error));
     return;
   }

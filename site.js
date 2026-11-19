@@ -345,10 +345,116 @@ async function reviewsPage(){
  '</div><div class="form-panel review-submit"><h2>Share your experience</h2><p>Sign in with your customer account to submit a review. Reviews are moderated before appearing publicly.</p><div id="review-status" class="status-message"></div><form id="review-form"><div class="form-grid"><div class="field"><label>Your name</label><input id="review-name" maxlength="120" placeholder="Name shown with your review"></div><div class="field"><label>Rating</label><select id="review-rating"><option value="5">★★★★★ · 5 stars</option><option value="4">★★★★ · 4 stars</option><option value="3">★★★ · 3 stars</option><option value="2">★★ · 2 stars</option><option value="1">★ · 1 star</option></select></div><div class="field full"><label>Review title</label><input id="review-title" maxlength="120"></div><div class="field full"><label>Your experience</label><textarea id="review-body" maxlength="4000" required></textarea></div></div><button class="btn" type="submit">Submit review ↗</button></form></div></div></section>';
 }
 async function accountPage(){
- const s=db();let user=null,profile=null,orders=[];if(s){const sess=await s.auth.getSession();user=sess.data.session?.user||null;if(user){const [pr,or]=await Promise.all([s.from('profiles').select('*').eq('id',user.id).maybeSingle(),s.from('orders').select('*,order_items(*)').eq('user_id',user.id).order('created_at',{ascending:false})]);profile=pr.data;orders=or.data||[]}}
+ const s=db();let user=null,profile=null,orders=[];
+ if(s){const sess=await s.auth.getSession();user=sess.data.session?.user||null;if(user){
+  const [pr,or]=await Promise.all([
+   s.from('profiles').select('*').eq('id',user.id).maybeSingle(),
+   s.from('orders').select('*,order_items(*)').eq('user_id',user.id).order('created_at',{ascending:false})
+  ]);profile=pr.data;orders=or.data||[];window.AirevoAccountOrders=orders;
+ }}
  if(!user)return heroHead('My account','Your Airevo account.','Sign in to see your order history and manage your contact details.')+'<section class="section"><div class="container empty-state"><a class="btn" href="/login.html?next=%2Faccount.html">Sign in to continue ↗</a></div></section>';
- return heroHead('My account','Hello, '+esc(profile?.full_name||user.email)+'.','Manage your account and check the status of your orders.')+'<section class="section"><div class="container account-overview"><div class="admin-panel"><h3>Account details</h3><p>'+esc(user.email)+'</p><p>'+esc(profile?.phone||'No phone added yet')+'</p><button class="btn-mini" id="signout-customer">Sign out</button></div><div class="admin-panel"><h3>My orders</h3>'+(orders.length?'<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Total</th><th>Status</th></tr></thead><tbody>'+orders.map(o=>'<tr><td>'+esc(o.order_number)+'</td><td>'+new Date(o.created_at).toLocaleDateString('en-IN')+'</td><td>'+money(o.grand_total)+'</td><td>'+esc(o.status)+'</td></tr>').join('')+'</tbody></table></div>':'<p>No orders yet. Confirmed orders will appear here.</p>')+'</div></div></section>';
+ const addr=profile?.address||{};
+ const orderRows=orders.length?orders.map(o=>{
+  const hasReview=!!o.customer_reviewed;
+  return '<tr><td><strong>'+esc(o.order_number)+'</strong><br><small>'+new Date(o.created_at).toLocaleDateString('en-IN')+'</small></td><td>'+money(o.grand_total)+'</td><td>'+esc(o.status)+'</td><td><div class="account-order-actions"><button class="btn-mini" data-download-bill="'+o.id+'">Download bill</button>'+(hasReview?'<span class="review-note">Review submitted</span>':'<button class="btn-mini" data-order-review="'+o.id+'">Write a review</button>')+'</div></td></tr>';
+ }).join(''):'<tr><td colspan="4">No orders yet. Confirmed orders will appear here.</td></tr>';
+ return heroHead('My account','Hello, '+esc(profile?.full_name||user.email)+'.','Manage your account, saved delivery address and order history.')+
+ '<section class="section"><div class="container account-overview">'+
+ '<div class="admin-panel account-details-panel"><div class="admin-panel-head"><div><h3>Account details</h3><p>Keep your details up to date for faster checkout.</p></div><button class="btn-mini" id="account-edit-toggle">Edit details</button></div>'+
+ '<p><strong>Name:</strong> '+esc(profile?.full_name||user.user_metadata?.full_name||'Not added')+'</p><p><strong>Email:</strong> '+esc(user.email)+'</p><p><strong>Phone:</strong> '+esc(profile?.phone||'Not added yet')+'</p>'+
+ '<p><strong>Saved address:</strong> '+esc([addr.floor,addr.street,addr.landmark,addr.city,addr.pincode,addr.state].filter(Boolean).join(', ')||'No address saved')+'</p>'+
+ '<button class="btn-mini" id="account-signout">Sign out</button></div>'+
+ '<div class="admin-panel" id="account-edit-panel" hidden><h3>Edit account details</h3><div id="account-edit-status" class="status-message"></div>'+
+ '<form id="account-profile-form"><div class="admin-form-grid">'+
+ '<div class="field"><label>Full name</label><input name="full_name" maxlength="120" required value="'+esc(profile?.full_name||user.user_metadata?.full_name||'')+'"></div>'+
+ '<div class="field"><label>Phone number</label><input name="phone" type="tel" maxlength="20" value="'+esc(profile?.phone||'')+'" placeholder="+91…"></div>'+
+ '<div class="field full"><label>Floor / flat / house no.</label><input name="floor" maxlength="160" value="'+esc(addr.floor||'')+'" placeholder="Flat 4B, 2nd Floor"></div>'+
+ '<div class="field full"><label>Street / road name</label><input name="street" maxlength="200" value="'+esc(addr.street||'')+'" required></div>'+
+ '<div class="field full"><label>Nearby landmark</label><input name="landmark" maxlength="160" value="'+esc(addr.landmark||'')+'"></div>'+
+ '<div class="field"><label>City</label><input name="city" maxlength="100" value="'+esc(addr.city||'')+'" required></div>'+
+ '<div class="field"><label>PIN code</label><input name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="'+esc(addr.pincode||'')+'" required></div>'+
+ '<div class="field"><label>State</label><input name="state" maxlength="100" value="'+esc(addr.state||'West Bengal')+'" required></div>'+
+ '</div><button class="btn" type="submit">Save details</button></form>'+
+ '<div class="account-security-block"><h4>Change email address</h4><p>A verification code will be sent by Supabase to confirm your new email.</p>'+
+ '<form id="account-email-form"><div class="field"><label>New email address</label><input name="email" type="email" required></div><button class="btn-mini" type="submit">Send verification</button></form>'+
+ '<form id="account-email-verify-form" hidden><div class="field"><label>Verification code</label><input name="token" inputmode="numeric" autocomplete="one-time-code" required></div><button class="btn-mini" type="submit">Verify new email</button></form></div>'+
+ '<div class="account-security-block"><h4>Change password</h4><form id="account-password-form"><div class="admin-form-grid"><div class="field"><label>Current password</label><input name="current" type="password" required autocomplete="current-password"></div><div class="field"><label>New password</label><input name="next" type="password" minlength="8" required autocomplete="new-password"></div><div class="field"><label>Confirm new password</label><input name="confirm" type="password" minlength="8" required autocomplete="new-password"></div></div><button class="btn-mini" type="submit">Update password</button></form></div></div>'+
+ '<div class="admin-panel"><div class="admin-panel-head"><div><h3>My orders</h3><p>Review an order or download its bill whenever you need it.</p></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order / date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+orderRows+'</tbody></table></div></div>'+
+ '<div class="admin-panel"><div class="admin-panel-head"><div><h3>Admin Help</h3><p>Chat directly with the Airevo owner about an order or any issue.</p></div><button class="btn" id="customer-open-support">Open chat</button></div><div id="customer-support-box" class="customer-support-box" hidden><div class="support-thread" id="customer-support-thread"><p class="form-help">Loading your conversation…</p></div><form id="customer-support-form" class="support-compose"><label class="support-attach" title="Add an attachment">＋<input type="file" id="customer-support-file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden></label><textarea id="customer-support-message" maxlength="4000" placeholder="Describe the problem…" aria-label="Message to Admin Help"></textarea><button class="btn" type="submit">Send</button></form><p class="form-help">You can attach an image or PDF (up to 10 MB).</p></div></div>'+
+ '</div></section>';
 }
+async function bindAccount(){
+ const s=db();if(!s)return;const {data:{session}}=await s.auth.getSession();const user=session?.user;if(!user)return;
+ const status=$('#account-edit-status'),panel=$('#account-edit-panel');
+ $('#account-edit-toggle')?.addEventListener('click',()=>{panel.hidden=!panel.hidden;$('#account-edit-toggle').textContent=panel.hidden?'Edit details':'Close editor'});
+ $('#account-signout')?.addEventListener('click',async()=>{await s.auth.signOut();location.href='/'});
+ $('#account-profile-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();const fd=new FormData(e.currentTarget),btn=e.currentTarget.querySelector('button[type=submit]');btn.disabled=true;
+  const payload={full_name:String(fd.get('full_name')||'').trim(),phone:String(fd.get('phone')||'').trim(),address:{floor:String(fd.get('floor')||'').trim(),street:String(fd.get('street')||'').trim(),landmark:String(fd.get('landmark')||'').trim(),city:String(fd.get('city')||'').trim(),pincode:String(fd.get('pincode')||'').trim(),state:String(fd.get('state')||'').trim()},updated_at:new Date().toISOString()};
+  const {error}=await s.from('profiles').update(payload).eq('id',user.id);
+  if(error){showAccountStatus(status,error.message,true)}else{await s.auth.updateUser({data:{full_name:payload.full_name}});showAccountStatus(status,'Your account details and delivery address have been saved.');setTimeout(()=>location.reload(),700)}
+  btn.disabled=false;
+ });
+ $('#account-email-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();const email=new FormData(e.currentTarget).get('email').trim();const {error}=await s.auth.updateUser({email});
+  if(error){showAccountStatus(status,error.message,true);return}
+  $('#account-email-verify-form').hidden=false;showAccountStatus(status,'Verification email requested. Enter the code sent to the new address.');
+ });
+ $('#account-email-verify-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();const token=new FormData(e.currentTarget).get('token').trim();const {error}=await s.auth.verifyOtp({email:$('#account-email-form [name=email]').value.trim(),token,type:'email_change'});
+  if(error)showAccountStatus(status,error.message,true);else{showAccountStatus(status,'Email updated successfully.');setTimeout(()=>location.reload(),700)}
+ });
+ $('#account-password-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();const fd=new FormData(e.currentTarget),current=String(fd.get('current')),next=String(fd.get('next')),confirm=String(fd.get('confirm'));
+  if(next!==confirm){showAccountStatus(status,'New passwords do not match.',true);return}
+  const btn=e.currentTarget.querySelector('button[type=submit]');btn.disabled=true;
+  const {error:reauthError}=await s.auth.signInWithPassword({email:user.email,password:current});
+  if(reauthError){showAccountStatus(status,'Current password is incorrect.',true);btn.disabled=false;return}
+  const {error}=await s.auth.updateUser({password:next});showAccountStatus(status,error?.message||'Password changed successfully.',!!error);if(!error)e.currentTarget.reset();btn.disabled=false;
+ });
+ $('#account-open-support')?.click();
+ $('#customer-open-support')?.addEventListener('click',async()=>{const box=$('#customer-support-box');box.hidden=!box.hidden;if(!box.hidden)await loadCustomerSupport(s,user)});
+ $('#customer-support-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type=submit'),message=$('#customer-support-message').value.trim(),file=$('#customer-support-file').files[0];if(!message&&!file)return;
+  btn.disabled=true;
+  try{
+   let conversation=window.airevoSupportConversationId;
+   if(!conversation){const {data,error}=await s.from('support_conversations').insert({customer_id:user.id,subject:'Customer support'}).select('id').single();if(error)throw error;conversation=data.id;window.airevoSupportConversationId=conversation}
+   let path=null,name=null;
+   if(file){if(file.size>10485760)throw new Error('Attachment must be 10 MB or smaller.');if(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type))throw new Error('Only JPG, PNG, WEBP or PDF files are allowed.');path=user.id+'/'+conversation+'/'+crypto.randomUUID()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const up=await s.storage.from('airevo-support').upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;name=file.name}
+   const {error}=await s.from('support_messages').insert({conversation_id:conversation,sender_id:user.id,sender_role:'customer',message,attachment_path:path,attachment_name:name});if(error)throw error;
+   $('#customer-support-message').value='';$('#customer-support-file').value='';await loadCustomerSupport(s,user);
+  }catch(err){toast(err.message||'Unable to send your message')}finally{btn.disabled=false}
+ });
+ $$('[data-download-bill]').forEach(b=>b.addEventListener('click',()=>{const o=window.AirevoAccountOrders?.find(x=>x.id===b.dataset.downloadBill);if(o)downloadCustomerBill(o)}));
+ $$('[data-order-review]').forEach(b=>b.addEventListener('click',()=>openOrderReview(s,user,b.dataset.orderReview)));
+ window.AirevoAccountOrders=window.AirevoAccountOrders||[];
+}
+function showAccountStatus(el,message,error=false){if(!el)return;el.textContent=message;el.className='status-message show'+(error?' error':'')}
+async function loadCustomerSupport(s,user){
+ const host=$('#customer-support-thread');if(!host)return;
+ const {data:convs,error}=await s.from('support_conversations').select('*').eq('customer_id',user.id).order('last_message_at',{ascending:false}).limit(1);if(error){host.textContent=error.message;return}
+ let conversation=convs?.[0];
+ if(!conversation){host.innerHTML='<p class="form-help">Send your first message to start a private chat with the Airevo owner.</p>';return}
+ window.airevoSupportConversationId=conversation.id;
+ const {data:messages,error:msgError}=await s.from('support_messages').select('*').eq('conversation_id',conversation.id).order('created_at');
+ if(msgError){host.textContent=msgError.message;return}
+ host.innerHTML=(messages||[]).map(m=>'<div class="support-message '+(m.sender_role==='customer'?'mine':'theirs')+'"><small>'+(m.sender_role==='customer'?'You':'Airevo owner')+' · '+new Date(m.created_at).toLocaleString('en-IN')+'</small><p>'+esc(m.message)+'</p>'+(m.attachment_path?'<a href="#" data-support-attachment="'+esc(m.attachment_path)+'">'+esc(m.attachment_name||'View attachment')+'</a>':'')+'</div>').join('')||'<p class="form-help">No messages yet.</p>';
+ host.scrollTop=host.scrollHeight;
+ host.querySelectorAll('[data-support-attachment]').forEach(a=>a.onclick=async ev=>{ev.preventDefault();const {data,error}=await s.storage.from('airevo-support').createSignedUrl(a.dataset.supportAttachment,300);if(error){toast(error.message);return}window.open(data.signedUrl,'_blank','noopener')});
+}
+function downloadCustomerBill(o){
+ const addr=o.shipping_address||{},items=(o.order_items||[]).map(it=>'<tr><td>'+esc(it.product_name)+' '+esc(it.variant_name||'')+'</td><td>'+it.quantity+'</td><td>'+money(it.unit_price)+'</td><td>'+money(it.line_total)+'</td></tr>').join('');
+ const html='<!doctype html><html><head><meta charset="utf-8"><title>Airevo bill '+esc(o.order_number)+'</title><style>body{font:14px Arial;padding:36px;color:#172b3a}h1{color:#168bc5}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{text-align:left;padding:12px;border-bottom:1px solid #dce6eb}.total{text-align:right;font-size:20px;font-weight:bold;margin-top:20px}</style></head><body><h1>Airevo</h1><b>Order bill</b><p>Order: '+esc(o.order_number)+'<br>Date: '+new Date(o.created_at).toLocaleString('en-IN')+'<br>Status: '+esc(o.status)+'<br>Payment: '+esc(o.payment_status)+'</p><p>'+esc(o.customer_name)+'<br>'+esc(o.customer_email)+'<br>'+esc(o.customer_phone)+'<br>'+esc([addr.floor,addr.street,addr.landmark,addr.city,addr.state,addr.pincode].filter(Boolean).join(', '))+'</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+items+'</tbody></table><div class="total">Grand total: '+money(o.grand_total)+'</div><p>Thank you for choosing Airevo.</p><script>window.onload=()=>window.print()</script></body></html>';
+ const w=window.open('','_blank','width=850,height=900');if(!w){toast('Allow pop-ups to download or print your bill.');return}w.document.write(html);w.document.close();
+}
+async function openOrderReview(s,user,orderId){
+ const {data:order,error}=await s.from('orders').select('id,order_number').eq('id',orderId).eq('user_id',user.id).single();if(error){toast(error.message);return}
+ const modal=document.createElement('div');modal.className='modal-backdrop open';modal.innerHTML='<div class="modal"><div class="modal-head"><button class="modal-close" type="button">×</button><span class="hero-kicker">Order review</span><h2>Share your experience</h2><p>'+esc(order.order_number)+'</p></div><div class="modal-body"><div id="order-review-status" class="status-message"></div><form id="order-review-form"><div class="field"><label>Star rating</label><select name="rating"><option value="5">★★★★★ · 5 stars</option><option value="4">★★★★ · 4 stars</option><option value="3">★★★ · 3 stars</option><option value="2">★★ · 2 stars</option><option value="1">★ · 1 star</option></select></div><div class="field"><label>Review title</label><input name="title" maxlength="120"></div><div class="field"><label>Your experience</label><textarea name="body" maxlength="4000" required></textarea></div><button class="btn" type="submit">Submit review</button></form></div></div>';
+ document.body.appendChild(modal);modal.querySelector('.modal-close').onclick=()=>modal.remove();
+ modal.querySelector('#order-review-form').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.currentTarget),payload={user_id:user.id,order_id:order.id,customer_name:user.user_metadata?.full_name||user.email,rating:Number(fd.get('rating')),title:String(fd.get('title')||'').trim(),body:String(fd.get('body')||'').trim(),is_verified_purchase:true,is_approved:false};const {error}=await s.from('reviews').insert(payload);const st=modal.querySelector('#order-review-status');if(error){st.textContent=error.code==='23505'?'You have already reviewed this order.':error.message;st.className='status-message show error'}else{st.textContent='Thank you. Your review has been sent to the owner for moderation.';st.className='status-message show';e.currentTarget.reset();setTimeout(()=>location.reload(),900)}};
+}
+
 function loginPage(){return heroHead('Customer account','Welcome back to Airevo.','Sign in to manage your details, follow orders and save your favourite appliances.')+'<section class="auth-shell"><div class="auth-card"><span class="eyebrow">Customer account</span><h1 id="auth-heading">Sign in to your account</h1><p>Create an account or sign in using email and password. Email verification and password recovery use Supabase Auth.</p><div class="auth-tabs"><button class="active" data-auth-mode="login">Sign in</button><button data-auth-mode="signup">Create account</button></div><div id="customer-auth-status" class="status-message"></div><form id="customer-auth-form" class="auth-form"><div class="field" id="auth-name-field" hidden><label>Full name</label><input id="auth-fullname"></div><div class="field"><label>Email address</label><input id="auth-email" type="email" required autocomplete="email"></div><div class="field"><label>Password</label><input id="auth-password" type="password" minlength="8" required autocomplete="current-password"></div><div id="auth-confirm-password-field" class="field" hidden><label>Confirm password</label><input id="auth-confirm-password" type="password" minlength="8"></div><div class="auth-links"><a href="#" id="forgot-password">Forgot password?</a><a href="/account.html">My account</a></div><button class="btn" id="customer-auth-submit">Sign in</button></form><form id="password-recovery-email-form" class="auth-form" hidden><div class="field"><label>Email address</label><input id="recovery-email" type="email" autocomplete="email" required></div><button class="btn" id="recovery-send-code">Send verification code</button><button class="btn dark" type="button" id="recovery-back-login">Back to sign in</button></form><form id="password-recovery-code-form" class="auth-form" hidden><p class="form-help">Enter the verification code sent to your email address.</p><div class="field"><label>Verification code</label><input id="recovery-code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required></div><button class="btn" id="recovery-verify-code">Verify code</button><div class="auth-links"><a href="#" id="recovery-resend-code">Resend code</a><a href="#" id="recovery-back-email">Change email</a></div></form><form id="password-recovery-new-form" class="auth-form" hidden><div class="field"><label>New password</label><input id="recovery-new-password" type="password" minlength="8" autocomplete="new-password" required></div><div class="field"><label>Confirm new password</label><input id="recovery-confirm-password" type="password" minlength="8" autocomplete="new-password" required></div><button class="btn" id="recovery-update-password">Update password</button></form></div></section>'}
 function adminPage(){return adminDashboard()}
 function adminDashboard(){return heroHead('Airevo admin','Store management. One workspace.','Manage catalogue content, product variants, stock, collections, orders, reviews and editorial posts.')+'<section class="section"><div class="container admin-shell"><aside class="admin-nav" id="admin-nav"><button class="active" data-admin-tab="overview">Overview</button><button data-admin-tab="products">Products & variants</button><button data-admin-tab="categories">Categories</button><button data-admin-tab="collections">Collections</button><button data-admin-tab="orders">Orders & billing</button><button data-admin-tab="reviews">Reviews</button><button data-admin-tab="blogs">Blog posts</button><button data-admin-tab="inquiries">Enquiries</button><button id="admin-signout">Sign out</button></aside><div class="admin-main" id="admin-main"><div class="boot-screen"><span class="boot-mark">A</span><span>Loading store data…</span></div></div></div></section>'}
@@ -404,6 +510,7 @@ function productImages(){
   $('#product-main-image').src=images[0]||image(p);bindThumbs();
  });
 }
+async function syncHeaderAuth(){const s=db();if(!s)return;const {data}=await s.auth.getSession();const link=$('.login-link');if(link){if(data.session){link.textContent='Sign out';link.href='#';link.onclick=async e=>{e.preventDefault();await s.auth.signOut();location.href='/login.html'}}else{link.textContent='Sign in';link.href='/login.html';link.onclick=null}}}
 async function render(){
  const loadTask=load();
  let content='';
@@ -422,10 +529,10 @@ async function render(){
  else if(page==='blog')content=blogPage();
  else if(page==='blog-post')content=blogPostPage();
  else content=await home();
- shell(content);slider();bindCatalogue();productImages();bindContact();bindReviews();
+ shell(content);slider();bindCatalogue();productImages();bindContact();bindReviews();syncHeaderAuth();
  if(page==='login')window.AirevoAuth?.customerBoot();
  if(page==='admin')window.AirevoAdmin?.render();
- if(page==='account')$('#signout-customer')?.addEventListener('click',async()=>{await db()?.auth.signOut();location.href='/'});
+ if(page==='account')bindAccount();
  }catch(e){console.error(e);shell(heroHead('Airevo','Something went wrong.','Please refresh the page or contact the Airevo team.')+'<section class="section"><div class="container">'+esc(e.message||e)+'</div></section>')}
  if(loadTask&&!S.dataLoaded)loadTask.then(()=>{if(S.dataLoaded&&!document.hidden)render()}).catch(error=>console.error('Airevo data request failed after the storefront rendered.',error));
 }

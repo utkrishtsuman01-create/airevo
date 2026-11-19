@@ -445,6 +445,7 @@ function mountDemoDashboard(){
    field('Storefront status','product-active',p?.active!==false?'Active':'Hidden','select',false,[{value:'Active',label:'Active'},{value:'Hidden',label:'Hidden'}])+
    '</div><div class="hero-buttons"><button class="btn" type="submit">'+(isEdit?'Save changes':'Create product')+'</button><button class="btn dark" type="button" data-action="editor-close">Cancel</button></div></form>';
   host.insertAdjacentHTML('beforeend',editor(isEdit?'Edit product':'Add product',form));
+  $('#demo-editor').dataset.editId=p?.id||'';
   $('#demo-editor').scrollIntoView({behavior:'smooth',block:'start'});
  };
  const showCategoryForm=c=>{
@@ -463,11 +464,13 @@ function mountDemoDashboard(){
   $('#demo-editor').dataset.editId=b?.id||'';
  };
  const renderVariants=p=>{
+  $('#demo-editor')?.remove();
   const rows=p.variants.map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+esc(v.sku)+'</td><td>'+money(v.price)+'</td><td>'+v.stock+'</td><td>'+button('variant-edit','Edit',p.id+'|'+v.id)+' '+button('variant-delete','Delete',p.id+'|'+v.id,true)+'</td></tr>').join('');
   host.insertAdjacentHTML('beforeend',editor('Variants · '+esc(p.name),'<p>Manage model, finish, size or capacity options for this product.</p>'+table(['Variant','SKU','Price','Stock','Actions'],rows)+'<div class="hero-buttons">'+button('variant-add','Add variant',p.id)+'</div>'));
   $('#demo-editor').dataset.productId=p.id;
  };
  const showVariantForm=(p,v)=>{
+  $('#demo-editor')?.remove();
   const form='<form id="demo-variant-form"><div class="admin-form-grid">'+field('Variant name','variant-name',v?.name||'','text',false,'required')+field('SKU','variant-sku',v?.sku||'','text')+field('Price (₹)','variant-price',v?.price??p.price,'number',false,'min="0" step="0.01" required')+field('Stock quantity','variant-stock',v?.stock??0,'number',false,'min="0" step="1" required')+'</div><div class="hero-buttons"><button class="btn" type="submit">Save variant</button><button class="btn dark" type="button" data-action="variants-back" data-id="'+p.id+'">Cancel</button></div></form>';
   host.insertAdjacentHTML('beforeend',editor(v?'Edit variant':'Add variant',form));
   $('#demo-editor').dataset.productId=p.id;$('#demo-editor').dataset.variantId=v?.id||'';
@@ -481,6 +484,7 @@ function mountDemoDashboard(){
   const b=e.target.closest('[data-action]');if(!b)return;
   const action=b.dataset.action,idValue=b.dataset.id;
   if(action==='editor-close'){$('#demo-editor')?.remove();return}
+  if(action==='reset-demo'&&confirm('Reset all demo records to the original sample data?')){state=clone(seed);save('Demo data reset.');setTab('overview');return}
   if(action==='product-add'){showProductForm(null);return}
   if(action==='product-edit'){const p=state.products.find(x=>x.id===idValue);if(p)showProductForm(p);return}
   if(action==='product-delete'){const p=state.products.find(x=>x.id===idValue);if(p&&confirm('Delete '+p.name+' from the demo catalogue?')){state.products=state.products.filter(x=>x.id!==idValue);save('Product deleted.');render()}return}

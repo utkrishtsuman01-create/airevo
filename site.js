@@ -382,7 +382,7 @@ async function accountPage(){
  '</div>'+
  '<div class="account-security-block"><h4>Change password</h4><form id="account-password-form"><div class="admin-form-grid"><div class="field"><label>Current password</label><input name="current" type="password" required autocomplete="current-password"></div><div class="field"><label>New password</label><input name="next" type="password" minlength="8" required autocomplete="new-password"></div><div class="field"><label>Confirm new password</label><input name="confirm" type="password" minlength="8" required autocomplete="new-password"></div></div><button class="btn-mini" type="submit">Update password</button></form></div></div>'+
  '<div class="admin-panel"><div class="admin-panel-head"><div><h3>My orders</h3><p>Review an order or download its bill whenever you need it.</p></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order / date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+orderRows+'</tbody></table></div></div>'+
- '<div class="admin-panel"><div class="admin-panel-head"><div><h3>Admin Help</h3><p>Chat directly with the Airevo owner about an order or any issue.</p></div><button class="btn" id="customer-open-support">Open chat</button></div><div id="customer-support-box" class="customer-support-box" hidden><div class="support-thread" id="customer-support-thread"><p class="form-help">Loading your conversation…</p></div><form id="customer-support-form" class="support-compose"><label class="support-attach" title="Add an attachment">＋<input type="file" id="customer-support-file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden></label><textarea id="customer-support-message" maxlength="4000" placeholder="Describe the problem…" aria-label="Message to Admin Help"></textarea><button class="btn" type="submit">Send</button></form><p class="form-help">You can attach an image or PDF (up to 10 MB).</p></div></div>'+
+
  '</div></section>';
 }
 async function bindAccount(){
@@ -410,16 +410,17 @@ async function bindAccount(){
   if(reauthError){showAccountStatus(status,'Current password is incorrect.',true);btn.disabled=false;return}
   const {error}=await s.auth.updateUser({password:next});showAccountStatus(status,error?.message||'Password changed successfully.',!!error);if(!error)e.currentTarget.reset();btn.disabled=false;
  });
- $('#customer-open-support')?.addEventListener('click',async()=>{const box=$('#customer-support-box');box.hidden=!box.hidden;if(!box.hidden)await loadCustomerSupport(s,user)});
+ document.addEventListener('airevo:open-support',()=>loadCustomerSupport(s,user));
  $('#customer-support-form')?.addEventListener('submit',async e=>{
   e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type=submit]'),message=$('#customer-support-message').value.trim(),file=$('#customer-support-file').files[0];if(!message&&!file)return;
   btn.disabled=true;
   try{
    let conversation=window.airevoSupportConversationId;
-   if(!conversation){const {data,error}=await s.from('support_conversations').insert({customer_id:user.id,subject:'Customer support'}).select('id').single();if(error)throw error;conversation=data.id;window.airevoSupportConversationId=conversation}
+   if(!conversation){const {data,error}=await s.from('support_conversations').insert({customer_id:user.id,subject:'Customer support'}).select('id').single();if(error)throw error;conversation=data.id;window.airevoSupportConversationId=conversation;window.AirevoSupportWidget?.watchConversation(conversation)}
    let path=null,name=null;
    if(file){if(file.size>10485760)throw new Error('Attachment must be 10 MB or smaller.');if(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type))throw new Error('Only JPG, PNG, WEBP or PDF files are allowed.');path=user.id+'/'+conversation+'/'+crypto.randomUUID()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const up=await s.storage.from('airevo-support').upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;name=file.name}
    const {error}=await s.from('support_messages').insert({conversation_id:conversation,sender_id:user.id,sender_role:'customer',message,attachment_path:path,attachment_name:name});if(error)throw error;
+   await s.from('support_conversations').update({status:'open',last_message_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',conversation);
    $('#customer-support-message').value='';$('#customer-support-file').value='';await loadCustomerSupport(s,user);
   }catch(err){toast(err.message||'Unable to send your message')}finally{btn.disabled=false}
  });
@@ -434,6 +435,7 @@ async function loadCustomerSupport(s,user){
  let conversation=convs?.[0];
  if(!conversation){host.innerHTML='<p class="form-help">Send your first message to start a private chat with the Airevo owner.</p>';return}
  window.airevoSupportConversationId=conversation.id;
+ window.AirevoSupportWidget?.watchConversation(conversation.id);
  const {data:messages,error:msgError}=await s.from('support_messages').select('*').eq('conversation_id',conversation.id).order('created_at');
  if(msgError){host.textContent=msgError.message;return}
  host.innerHTML=(messages||[]).map(m=>'<div class="support-message '+(m.sender_role==='customer'?'mine':'theirs')+'"><small>'+(m.sender_role==='customer'?'You':'Airevo owner')+' · '+new Date(m.created_at).toLocaleString('en-IN')+'</small><p>'+esc(m.message)+'</p>'+(m.attachment_path?'<a href="#" data-support-attachment="'+esc(m.attachment_path)+'">'+esc(m.attachment_name||'View attachment')+'</a>':'')+'</div>').join('')||'<p class="form-help">No messages yet.</p>';

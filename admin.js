@@ -11,7 +11,7 @@ function mountDashboard(){
  const old=$('.auth-shell',main);if(old)old.remove();
  let host=$('.admin-shell',main);
  if(!host){
-  main.insertAdjacentHTML('beforeend','<section class="section"><div class="container admin-shell"><aside class="admin-nav" id="admin-nav"><div class="admin-nav-label">STORE MANAGEMENT</div><button class="active" data-admin-tab="overview">Overview</button><button data-admin-tab="products">Products & variants</button><button data-admin-tab="categories">Categories</button><button data-admin-tab="collections">Collections</button><button data-admin-tab="orders">Orders & billing</button><button data-admin-tab="reviews">Reviews</button><button data-admin-tab="blogs">Blog posts</button><button data-admin-tab="inquiries">Enquiries</button><button id="admin-signout">Sign out</button></aside><div class="admin-main" id="admin-main"><div class="boot-screen"><span class="boot-mark">A</span><span>Loading dashboard…</span></div></div></div></section>');
+  main.insertAdjacentHTML('beforeend','<section class="section"><div class="container admin-shell"><aside class="admin-nav" id="admin-nav"><div class="admin-nav-label">STORE MANAGEMENT</div><button class="active" data-admin-tab="overview">Overview</button><button data-admin-tab="products">Products & variants</button><button data-admin-tab="categories">Categories</button><button data-admin-tab="collections">Collections</button><button data-admin-tab="orders">Orders & billing</button><button data-admin-tab="reviews">Reviews</button><button data-admin-tab="blogs">Blog posts</button><button data-admin-tab="inquiries">Enquiries</button><button data-admin-tab="support">Admin Help</button><button id="admin-signout">Sign out</button></aside><div class="admin-main" id="admin-main"><div class="boot-screen"><span class="boot-mark">A</span><span>Loading dashboard…</span></div></div></div></section>');
  }
  $('#admin-nav').onclick=e=>{const b=e.target.closest('[data-admin-tab]');if(b)setTab(b.dataset.adminTab)};
  $('#admin-signout').onclick=async()=>{await db().auth.signOut();location.href='/admin'};
@@ -479,9 +479,47 @@ function mountDemoDashboard(){
   const rows=state.inquiries.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(q=>'<tr><td>'+new Date(q.date).toLocaleString('en-IN')+'</td><td><strong>'+esc(q.name)+'</strong></td><td><a href="tel:'+esc(q.phone.replace(/[^+\d]/g,''))+'">'+esc(q.phone)+'</a></td><td><a href="mailto:'+esc(q.email)+'">'+esc(q.email)+'</a></td><td>'+esc(q.subject)+'</td><td>'+esc(q.message)+'</td><td><select data-inquiry-status="'+esc(q.id)+'">'+['New','In progress','Resolved'].map(x=>'<option '+(x===q.status?'selected':'')+'>'+x+'</option>').join('')+'</select></td></tr>').join('');
   host.innerHTML='<div class="admin-panel"><h3>Customer enquiries</h3><p>Customer details are shown in separate columns. Use the phone link to call and the email link to compose an email.</p>'+table(['Received','Name','Call','Email','Subject','Message','Status'],rows)+'</div>';
  };
+ const renderAdminHelp=async()=>{
+  const s=db();if(!s){host.innerHTML='<div class="admin-panel">Support service unavailable.</div>';return}
+  host.innerHTML='<div class="admin-panel"><div class="admin-panel-head"><div><h3>Admin Help</h3><p>Private customer support conversations. Reply here and customers see the message in their account chat.</p></div><button class="btn-mini" id="support-refresh">Refresh</button></div><div class="admin-support-layout"><div class="admin-support-list" id="admin-support-list">Loading conversations…</div><div class="admin-support-chat"><div id="admin-support-thread" class="support-thread"><p>Select a conversation to reply.</p></div><form id="admin-support-form" class="support-compose"><label class="support-attach" title="Attach file">＋<input type="file" id="admin-support-file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden></label><textarea id="admin-support-message" maxlength="4000" placeholder="Reply to customer…"></textarea><button class="btn" type="submit">Send</button></form></div></div></div>';
+  let selected=null;
+  const list=$('#admin-support-list'),thread=$('#admin-support-thread');
+  const loadList=async()=>{
+   const {data,error}=await s.from('support_conversations').select('*').order('last_message_at',{ascending:false});
+   if(error){list.textContent=error.message;return}
+   if(!data?.length){list.innerHTML='<p>No customer chats yet.</p>';return}
+   const ids=[...new Set(data.map(x=>x.customer_id))];
+   const profiles=await s.from('profiles').select('id,full_name,email,phone').in('id',ids);
+   const map=new Map((profiles.data||[]).map(p=>[p.id,p]));
+   list.innerHTML=data.map(x=>{const p=map.get(x.customer_id)||{};return '<button class="admin-support-item '+(selected===x.id?'active':'')+'" data-support-conversation="'+x.id+'"><strong>'+esc(p.full_name||p.email||'Customer')+'</strong><small>'+esc(p.email||'')+'</small><small>'+esc(x.status)+' · '+new Date(x.last_message_at).toLocaleString('en-IN')+'</small></button>'}).join('');
+   list.querySelectorAll('[data-support-conversation]').forEach(b=>b.onclick=()=>{selected=b.dataset.supportConversation;loadList();loadThread()});
+  };
+  const loadThread=async()=>{
+   if(!selected){thread.innerHTML='<p>Select a conversation.</p>';return}
+   const {data,error}=await s.from('support_messages').select('*').eq('conversation_id',selected).order('created_at');
+   if(error){thread.textContent=error.message;return}
+   thread.innerHTML=(data||[]).map(m=>'<div class="support-message '+(m.sender_role==='admin'?'mine':'theirs')+'"><small>'+(m.sender_role==='admin'?'You · Airevo owner':'Customer')+' · '+new Date(m.created_at).toLocaleString('en-IN')+'</small><p>'+esc(m.message)+'</p>'+(m.attachment_path?'<a href="#" data-admin-support-attachment="'+esc(m.attachment_path)+'">'+esc(m.attachment_name||'View attachment')+'</a>':'')+'</div>').join('')||'<p>No messages yet.</p>';
+   thread.scrollTop=thread.scrollHeight;
+   thread.querySelectorAll('[data-admin-support-attachment]').forEach(a=>a.onclick=async ev=>{ev.preventDefault();const {data,error}=await s.storage.from('airevo-support').createSignedUrl(a.dataset.adminSupportAttachment,300);if(error){notify(error.message);return}window.open(data.signedUrl,'_blank','noopener')});
+  };
+  $('#support-refresh').onclick=async()=>{await loadList();await loadThread()};
+  $('#admin-support-form').onsubmit=async e=>{
+   e.preventDefault();if(!selected){notify('Select a customer conversation first.');return}
+   const btn=e.currentTarget.querySelector('button[type=submit]'),message=$('#admin-support-message').value.trim(),file=$('#admin-support-file').files[0];if(!message&&!file)return;btn.disabled=true;
+   try{
+    let path=null,name=null;
+    if(file){if(file.size>10485760)throw new Error('Attachment must be 10 MB or smaller.');if(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type))throw new Error('Only JPG, PNG, WEBP or PDF files are allowed.');path='admin/'+selected+'/'+crypto.randomUUID()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const up=await s.storage.from('airevo-support').upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;name=file.name}
+    const {data:{session}}=await s.auth.getSession();
+    const {error}=await s.from('support_messages').insert({conversation_id:selected,sender_id:session.user.id,sender_role:'admin',message,attachment_path:path,attachment_name:name});if(error)throw error;
+    await s.from('support_conversations').update({status:'waiting',last_message_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',selected);
+    $('#admin-support-message').value='';$('#admin-support-file').value='';await loadThread();await loadList();
+   }catch(err){notify(err.message||'Unable to send reply')}finally{btn.disabled=false}
+  };
+  await loadList();
+ };
  const render=()=>{
-  const views={overview:renderOverview,products:renderProducts,categories:renderCategories,collections:renderCollections,orders:renderOrders,reviews:renderReviews,blogs:renderBlogs,inquiries:renderInquiries,settings:renderSettings};
-  host.innerHTML='<div class="demo-note"><strong>INTERACTIVE CLIENT DEMO</strong> · Sample records only. Changes stay in this browser and do not modify Supabase, real customer orders or the public catalogue.</div>';
+  const views={overview:renderOverview,products:renderProducts,categories:renderCategories,collections:renderCollections,orders:renderOrders,reviews:renderReviews,blogs:renderBlogs,inquiries:renderInquiries,settings:renderSettings,support:renderAdminHelp};
+  host.innerHTML=tab==='support'?'':'<div class="demo-note"><strong>INTERACTIVE CLIENT DEMO</strong> · Sample records only. Changes stay in this browser and do not modify Supabase, real customer orders or the public catalogue.</div>';
   const note=host.innerHTML; (views[tab]||renderOverview)();host.innerHTML=note+host.innerHTML;
  };
  const mediaImage=async file=>{

@@ -348,10 +348,11 @@ async function reviewsPage(){
 async function accountPage(){
  const s=db();let user=null,profile=null,orders=[];
  if(s){const sess=await s.auth.getSession();user=sess.data.session?.user||null;if(user){
-  const [pr,or]=await Promise.all([
+  const [pr,or,rr]=await Promise.all([
    s.from('profiles').select('*').eq('id',user.id).maybeSingle(),
-   s.from('orders').select('*,order_items(*)').eq('user_id',user.id).order('created_at',{ascending:false})
-  ]);profile=pr.data;orders=or.data||[];window.AirevoAccountOrders=orders;
+   s.from('orders').select('*,order_items(*)').eq('user_id',user.id).order('created_at',{ascending:false}),
+   s.from('reviews').select('order_id').eq('user_id',user.id)
+  ]);profile=pr.data;orders=or.data||[];const reviewed=new Set((rr.data||[]).map(x=>x.order_id));orders.forEach(o=>o.customer_reviewed=reviewed.has(o.id));window.AirevoAccountOrders=orders;
  }}
  if(!user)return heroHead('My account','Your Airevo account.','Sign in to see your order history and manage your contact details.')+'<section class="section"><div class="container empty-state"><a class="btn" href="/login.html?next=%2Faccount.html">Sign in to continue ↗</a></div></section>';
  const addr=profile?.address||{};

@@ -38,6 +38,7 @@ function customerBoot(){
  const recoveryForms=[form,recoveryEmail,recoveryCode,recoveryNew];
  function showRecoveryStep(step,title,message=''){
   recoveryForms.forEach((node,index)=>{if(node)node.hidden=index!==step});
+  const tabs=document.querySelector('.auth-tabs');if(tabs)tabs.hidden=step!==0;
   $('#auth-heading').textContent=title;
   if(message)show(status,message);else{status.className='status-message';status.textContent=''}
  }
